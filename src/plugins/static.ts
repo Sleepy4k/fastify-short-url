@@ -6,7 +6,7 @@ import path from "path";
 export default fp(
   async function staticPlugin(app: FastifyInstance) {
     await app.register(fastifyStatic, {
-      root: path.join(import.meta.dir, "..", "public"),
+      root: path.join(app.entryPath, "public"),
       prefix: "/assets/",
     });
   },

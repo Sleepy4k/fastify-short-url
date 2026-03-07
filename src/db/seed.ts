@@ -12,7 +12,6 @@ export async function seed(db: DB) {
     .values({ username: "admin", passwordHash, role: "superadmin" })
     .onDuplicateKeyUpdate({ set: { role: "superadmin" } });
 
-  // ── Default Settings ───────────────────────────────────────────────────────
   const defaultSettings = [
     {
       key: "app_name",
@@ -59,7 +58,6 @@ export async function seed(db: DB) {
   }
 }
 
-// Allow running directly: bun run src/db/seed.ts
 if (import.meta.main) {
   const { createDbConnection } = await import("./connection.ts");
   const db = await createDbConnection();

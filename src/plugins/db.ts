@@ -2,7 +2,6 @@ import fp from "fastify-plugin";
 import type { FastifyInstance } from "fastify";
 import { createDbConnection, type DB } from "../db/connection.ts";
 
-// Extend FastifyInstance type with our decorator
 declare module "fastify" {
   interface FastifyInstance {
     db: DB;
@@ -11,9 +10,15 @@ declare module "fastify" {
 
 export default fp(
   async function dbPlugin(app: FastifyInstance) {
-    const db = await createDbConnection();
+    const db = await createDbConnection({
+      host: app.config.DB_HOST,
+      port: app.config.DB_PORT,
+      user: app.config.DB_USER,
+      password: app.config.DB_PASSWORD,
+      database: app.config.DB_NAME,
+    });
     app.decorate("db", db);
-    app.log.info("✅ MySQL connection pool established");
+    app.log.info("\u2705 MySQL connection pool established");
   },
-  { name: "db-plugin" },
+  { name: "db-plugin", dependencies: ["env-plugin"] },
 );

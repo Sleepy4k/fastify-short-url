@@ -1,96 +1,60 @@
-<div class="space-y-6">
-  <h2 class="text-base font-semibold text-gray-200">User Management</h2>
-
-  <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
-    <h3 class="text-sm font-semibold text-gray-300 mb-4">Create New User</h3>
-    <div id="user-error" class="mb-3"></div>
-    <form
-      hx-post="/admin/users"
-      hx-target="#user-error"
-      hx-swap="innerHTML"
-      hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===201) { this.reset(); htmx.trigger('#user-list', 'refresh'); }"
-      class="grid grid-cols-1 sm:grid-cols-3 gap-3"
-    >
-      <div>
-        <label class="block text-xs font-semibold text-gray-300 mb-2">Username</label>
-        <input
-          name="username"
-          type="text"
-          required
-          minlength="3"
-          maxlength="64"
-          placeholder="username"
-          class="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-        />
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-gray-300 mb-2">Password</label>
-        <input
-          name="password"
-          type="password"
-          required
-          minlength="6"
-          placeholder="••••••"
-          class="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-        />
-      </div>
-      <div class="flex items-end">
-        <button
-          type="submit"
-          class="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 text-sm font-semibold transition-colors"
-        >
-          Create User
-        </button>
-      </div>
+<div id="users-section" hx-get="/admin/users" hx-trigger="userCreated from:body, userDeleted from:body" hx-swap="outerHTML" hx-target="#users-section">
+  <div class="rounded-2xl border border-gray-700/50 bg-gray-800/60 backdrop-blur p-6 mb-6">
+    <h2 class="text-sm font-bold uppercase tracking-widest mb-4" style="color: #CC0000;">Tambah Admin</h2>
+    <form hx-post="/admin/users" hx-target="#user-form-error" hx-swap="innerHTML" class="flex flex-col sm:flex-row gap-3">
+      <input type="text" name="username" placeholder="Username" required class="flex-1 min-w-0 rounded-xl bg-gray-900 border border-gray-700 px-4 py-2.5 text-sm focus:outline-none transition-all" onfocus="this.style.borderColor='#CC0000'; this.style.boxShadow='0 0 0 2px rgba(204,0,0,0.25)'" onblur="this.style.borderColor=''; this.style.boxShadow=''" />
+      <input type="password" name="password" placeholder="Password" required class="flex-1 min-w-0 rounded-xl bg-gray-900 border border-gray-700 px-4 py-2.5 text-sm focus:outline-none transition-all" onfocus="this.style.borderColor='#CC0000'; this.style.boxShadow='0 0 0 2px rgba(204,0,0,0.25)'" onblur="this.style.borderColor=''; this.style.boxShadow=''" />
+      <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:brightness-110 transition-all whitespace-nowrap" style="background: linear-gradient(135deg, #CC0000, #990000);">
+        Tambah
+      </button>
     </form>
+    <div id="user-form-error" class="mt-3"></div>
   </div>
 
-  <section
-    id="user-list"
-    hx-get="/admin/users"
-    hx-trigger="userCreated from:body, userDeleted from:body, refresh"
-    hx-select="#user-list"
-    hx-swap="outerHTML"
-    hx-target="#user-list"
-  >
-    <div class="rounded-xl border border-gray-800 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-900 text-gray-400 text-xs uppercase">
-          <tr>
-            <th class="px-4 py-3 text-left">Username</th>
-            <th class="px-4 py-3 text-left">Role</th>
-            <th class="px-4 py-3 text-left">Created</th>
-            <th class="px-4 py-3 text-center">Actions</th>
+  <div class="rounded-2xl border border-gray-700/50 bg-gray-800/60 backdrop-blur overflow-hidden">
+    <div class="table-responsive">
+      <table class="w-full text-sm" style="min-width: 440px;">
+        <thead>
+          <tr class="border-b border-gray-700/60 text-left">
+            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400">#</th>
+            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Username</th>
+            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Role</th>
+            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 hide-sm">Dibuat</th>
+            <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 text-right">Aksi</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-800 bg-gray-950">
-          <% for (const u of users) { %>
-            <tr class="hover:bg-gray-900 transition-colors">
-              <td class="px-4 py-3 font-medium text-gray-200"><%= u.username %></td>
-              <td class="px-4 py-3">
-                <span class="px-2 py-0.5 text-xs rounded-full <%= u.role === 'superadmin' ? 'bg-indigo-900 bg-opacity-50 border border-indigo-700 text-indigo-300' : 'bg-gray-800 border border-gray-700 text-gray-400' %>">
-                  <%= u.role %>
-                </span>
-              </td>
-              <td class="px-4 py-3 text-xs text-gray-400"><%= new Date(u.createdAt).toLocaleDateString() %></td>
-              <td class="px-4 py-3 text-center">
-                <% if (u.id !== currentUserId) { %>
-                  <button
-                    hx-delete="/admin/users/<%= u.id %>"
-                    hx-confirm="Delete user '<%= u.username %>'?"
-                    hx-swap="none"
-                    class="text-xs text-red-400 hover:text-white hover:bg-red-900 hover:bg-opacity-30 px-2 py-1 rounded transition-colors"
-                  >
-                    Delete
-                  </button>
-                <% } else { %>
-                  <span class="text-xs text-gray-600">You</span>
-                <% } %>
-              </td>
-            </tr>
-          <% } %>
+        <tbody class="divide-y divide-gray-700/40">
+          <% if (!users || users.length === 0) { %>
+          <tr>
+            <td colspan="5" class="px-4 py-8 text-center text-gray-500 text-sm">Belum ada admin terdaftar.</td>
+          </tr>
+          <% } else { users.forEach(function(u, i) { %>
+          <tr class="hover:bg-gray-900/40 transition-colors">
+            <td class="px-4 py-3 text-gray-500 text-xs"><%= i + 1 %></td>
+            <td class="px-4 py-3 font-medium text-gray-100"><%= u.username %></td>
+            <td class="px-4 py-3">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+                <%= u.role === 'superadmin' ? 'bg-red-900/40 text-red-300 border border-red-700/60' : 'bg-gray-700/60 text-gray-300 border border-gray-600/60' %>">
+                <%= u.role %>
+              </span>
+            </td>
+            <td class="px-4 py-3 text-xs text-gray-500 hide-sm">
+              <%= u.createdAt ? new Date(u.createdAt).toLocaleDateString('id-ID') : '-' %>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <% if (u.id !== currentUserId) { %>
+              <span id="del-user-<%= u.id %>" hx-delete="/admin/users/<%= u.id %>" hx-swap="none" hx-trigger="confirmed" class="hidden"></span>
+              <button onclick="confirmDeleteUser(<%= u.id %>, '<%= u.username %>')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-400 hover:text-white hover:bg-red-900/30 border border-transparent hover:border-red-700 transition-all">
+                Hapus
+              </button>
+              <% } else { %>
+              <span class="text-xs text-gray-600 italic">Anda</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }) } %>
         </tbody>
       </table>
     </div>
-  </section>
+  </div>
 </div>

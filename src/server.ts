@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import fastifySensible from "@fastify/sensible";
 import fastifyFormbody from "@fastify/formbody";
 
+import envPlugin from "./plugins/env.ts";
 import dbPlugin from "./plugins/db.ts";
 import redisPlugin from "./plugins/redis.ts";
 import authPlugin from "./plugins/auth.ts";
@@ -16,6 +17,7 @@ import analyticsRoutes from "./modules/analytics/routes.ts";
 import settingsRoutes from "./modules/settings/routes.ts";
 import usersRoutes from "./modules/users/routes.ts";
 import adminRoutes from "./modules/admin/routes.ts";
+import profileRoutes from "./modules/profile/routes.ts";
 
 const app = Fastify({
   logger: {
@@ -27,6 +29,18 @@ const app = Fastify({
   },
   trustProxy: true,
 });
+
+app.decorate("entryPath", {
+  getter() {
+    let path = import.meta.url
+      ? new URL(import.meta.url).pathname
+      : process.cwd();
+    path = path.replace(/\/?[^\/]*$/, "/");
+    return path.startsWith("/") ? path.slice(1) : path;
+  },
+});
+
+await app.register(envPlugin);
 
 await app.register(dbPlugin);
 await app.register(redisPlugin);
@@ -44,6 +58,7 @@ await app.register(analyticsRoutes);
 await app.register(settingsRoutes);
 await app.register(usersRoutes);
 await app.register(adminRoutes);
+await app.register(profileRoutes);
 
 app.setErrorHandler(
   async (error: Error & { statusCode?: number }, _req, reply) => {
@@ -68,12 +83,9 @@ app.setNotFoundHandler(async (_req, reply) => {
   return reply.status(404).view("errors/404.ejs", { layout: false });
 });
 
-const host = process.env["HOST"] ?? "0.0.0.0";
-const port = Number(process.env["PORT"] ?? 3000);
-
 try {
-  await app.listen({ host, port });
-  console.log(`Server running at http://${host}:${port}`);
+  await app.listen({ host: app.config.HOST, port: app.config.PORT });
+  console.log(`Server running at http://${app.config.HOST}:${app.config.PORT}`);
 } catch (err) {
   app.log.fatal(err, "Server failed to start");
   process.exit(1);

@@ -19,13 +19,12 @@ declare module "fastify" {
 export default fp(
   async function authPlugin(app: FastifyInstance) {
     await app.register(fastifyCookie, {
-      secret:
-        process.env["COOKIE_SECRET"] ?? "fallback-cookie-secret-change-me",
+      secret: app.config.COOKIE_SECRET,
       hook: "onRequest",
     });
 
     await app.register(fastifyJwt, {
-      secret: process.env["JWT_SECRET"] ?? "fallback-jwt-secret-change-me",
+      secret: app.config.JWT_SECRET,
       cookie: {
         cookieName: "token",
         signed: false,
@@ -50,5 +49,5 @@ export default fp(
       },
     );
   },
-  { name: "auth-plugin" },
+  { name: "auth-plugin", dependencies: ["env-plugin"] },
 );

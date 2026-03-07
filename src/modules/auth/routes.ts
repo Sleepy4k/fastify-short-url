@@ -1,24 +1,10 @@
-import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { eq } from "drizzle-orm";
-import { admins } from "../../db/schema.ts";
-
-interface LoginBody {
-  username: string;
-  password: string;
-}
+import type { FastifyInstance } from "fastify";
+import * as ctrl from "./controller.ts";
 
 export default async function authRoutes(app: FastifyInstance) {
-  app.get("/login", async (req: FastifyRequest, reply: FastifyReply) => {
-    try {
-      await req.jwtVerify({ onlyCookie: true });
-      return reply.redirect("/");
-    } catch {
-      // not authenticated
-    }
-    return reply.view("auth/login.ejs", { error: null, layout: false });
-  });
+  app.get("/login", (req, reply) => ctrl.loginPage(app, req, reply));
 
-  app.post<{ Body: LoginBody }>(
+  app.post<{ Body: { username: string; password: string } }>(
     "/login",
     {
       schema: {
@@ -32,55 +18,8 @@ export default async function authRoutes(app: FastifyInstance) {
         },
       },
     },
-    async (req, reply) => {
-      const { username, password } = req.body;
-
-      const [admin] = await app.db
-        .select()
-        .from(admins)
-        .where(eq(admins.username, username))
-        .limit(1);
-
-      const valid = admin
-        ? await Bun.password.verify(password, admin.passwordHash)
-        : false;
-
-      if (!admin || !valid) {
-        const msg = "Invalid username or password.";
-        if (req.headers["hx-request"]) {
-          return reply
-            .status(401)
-            .header("HX-Retarget", "#login-error")
-            .view("auth/partials/login-error.ejs", {
-              error: msg,
-              layout: false,
-            });
-        }
-        return reply.view("auth/login.ejs", { error: msg, layout: false });
-      }
-
-      const token = app.jwt.sign({
-        id: admin.id,
-        username: admin.username,
-        role: admin.role ?? "admin",
-      });
-      reply.setCookie("token", token, {
-        path: "/",
-        httpOnly: true,
-        secure: process.env["NODE_ENV"] === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 8,
-      });
-
-      if (req.headers["hx-request"]) {
-        return reply.header("HX-Redirect", "/").status(200).send();
-      }
-      return reply.redirect("/");
-    },
+    (req, reply) => ctrl.handleLogin(app, req, reply),
   );
 
-  app.post("/logout", async (_req, reply) => {
-    reply.clearCookie("token", { path: "/" });
-    return reply.redirect("/login");
-  });
+  app.post("/logout", (req, reply) => ctrl.handleLogout(app, req, reply));
 }

@@ -9,18 +9,16 @@ declare module "fastify" {
 }
 
 const SETTINGS_CACHE_KEY = "app:settings";
-const SETTINGS_CACHE_TTL = 60; // seconds
+const SETTINGS_CACHE_TTL = 60 * 60 * 24 * 30;
 
 export default fp(
   async function settingsPlugin(app: FastifyInstance) {
     app.decorate("getSettings", async function getSettings(): Promise<
       Record<string, string>
     > {
-      // Try cache first
       const cached = await app.redis.get(SETTINGS_CACHE_KEY);
       if (cached) return JSON.parse(cached) as Record<string, string>;
 
-      // Fallback to DB
       const rows = await app.db.select().from(settings);
       const map: Record<string, string> = {};
       for (const row of rows) map[row.key] = row.value;
@@ -35,7 +33,6 @@ export default fp(
   },
   {
     name: "settings-plugin",
-    // This plugin needs db and redis to be registered first
     dependencies: ["db-plugin", "redis-plugin"],
   },
 );

@@ -1,19 +1,57 @@
-<!-- Edit Modal Partial -->
 <div
   id="edit-modal"
-  class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
-  onclick="if(event.target.id==='edit-modal') this.remove()"
+  class="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4 backdrop-blur-sm"
+  onclick="if (event.target.id === 'edit-modal') this.remove();"
 >
-  <div class="bg-gray-900 rounded-2xl border border-gray-800 p-8 max-w-lg w-full shadow-2xl" onclick="event.stopPropagation()">
+  <div
+    class="bg-gray-900 rounded-2xl border border-gray-800 p-6 sm:p-8 max-w-lg w-full shadow-2xl"
+    onclick="event.stopPropagation()"
+  >
     <div class="flex items-center gap-3 mb-6">
-      <div class="inline-flex items-center justify-center w-10 h-10 bg-purple-900 bg-opacity-50 rounded-lg">
-        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      <div
+        class="inline-flex items-center justify-center w-10 h-10 bg-purple-900/50 rounded-xl flex-shrink-0"
+      >
+        <svg
+          class="w-5 h-5 text-purple-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
         </svg>
       </div>
-      <h2 class="text-2xl font-bold text-gray-100">Edit Shortlink</h2>
+      <div>
+        <h2 class="text-xl font-bold text-gray-100">Edit Shortlink</h2>
+        <p class="text-xs text-gray-400 mt-0.5">
+          Perbarui shortcode, URL tujuan, atau tanggal kadaluarsa
+        </p>
+      </div>
+      <button
+        type="button"
+        onclick="document.getElementById('edit-modal').remove()"
+        class="ml-auto text-gray-500 hover:text-gray-300 flex-shrink-0"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
     </div>
-    
+
     <div id="edit-error" class="mb-4"></div>
 
     <form
@@ -24,35 +62,44 @@
       class="space-y-5"
     >
       <div>
-        <label class="block text-sm font-semibold text-gray-300 mb-2">Shortcode</label>
+        <label class="block text-sm font-semibold text-gray-300 mb-2"
+          >Shortcode</label
+        >
         <input
           name="shortcode"
           type="text"
           value="<%= url.shortcode %>"
           placeholder="custom-alias"
-          class="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+          class="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
         />
-        <p class="text-xs text-gray-400 mt-1">Only letters, numbers, hyphens, and underscores allowed.</p>
+        <p class="text-xs text-gray-500 mt-1">
+          Hanya huruf, angka, tanda hubung dan garis bawah.
+        </p>
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-gray-300 mb-2">Destination URL</label>
+        <label class="block text-sm font-semibold text-gray-300 mb-2"
+          >URL Tujuan</label
+        >
         <input
           name="originalUrl"
           type="url"
           value="<%= url.originalUrl %>"
           placeholder="https://example.com"
-          class="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+          class="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
         />
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-gray-300 mb-2">Expires At (Optional)</label>
+        <label class="block text-sm font-semibold text-gray-300 mb-2"
+          >Kadaluarsa
+          <span class="text-gray-500 font-normal">(opsional)</span></label
+        >
         <input
           name="expiresAt"
           type="datetime-local"
           value="<%= url.expiresAt ? new Date(url.expiresAt).toISOString().slice(0, 16) : '' %>"
-          class="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+          class="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
         />
       </div>
 
@@ -60,15 +107,16 @@
         <button
           type="button"
           onclick="document.getElementById('edit-modal').remove()"
-          class="rounded-lg bg-gray-800 hover:bg-gray-700 px-5 py-2.5 text-sm font-semibold transition-colors"
+          class="rounded-xl bg-gray-800 hover:bg-gray-700 px-5 py-2.5 text-sm font-semibold transition-colors"
         >
-          Cancel
+          Batal
         </button>
         <button
           type="submit"
-          class="rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 px-5 py-2.5 text-sm font-semibold transition-all hover:shadow-lg active:scale-95"
+          class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-95"
+          style="background: linear-gradient(135deg, #7c3aed, #6d28d9)"
         >
-          Save Changes
+          Simpan Perubahan
         </button>
       </div>
     </form>

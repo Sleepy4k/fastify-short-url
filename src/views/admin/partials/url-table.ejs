@@ -1,160 +1,93 @@
 <%- include('create-form.ejs') %>
 
-<section
-  id="url-list"
-  hx-get="/admin/urls"
-  hx-trigger="urlCreated from:body, urlUpdated from:body, urlDeleted from:body, refresh"
-  hx-select="#url-list"
-  hx-swap="outerHTML"
-  hx-target="#url-list"
->
-  <div class="rounded-xl border border-gray-800 overflow-hidden shadow-lg">
-    <table class="w-full text-sm">
+<section id="url-list" hx-get="/admin/urls" hx-trigger="urlCreated from:body, urlUpdated from:body, urlDeleted from:body" hx-select="#url-list" hx-swap="outerHTML" hx-target="#url-list">
+  <div class="rounded-xl border border-gray-800 overflow-hidden shadow-lg table-responsive">
+    <table class="w-full text-sm min-w-[640px]">
       <thead class="bg-gray-900 text-gray-300 uppercase text-xs font-semibold">
         <tr>
-          <th class="px-6 py-4 text-left">Shortcode</th>
-          <th class="px-6 py-4 text-left">Destination</th>
-          <th class="px-6 py-4 text-center">Clicks</th>
-          <th class="px-6 py-4 text-center">Active</th>
-          <th class="px-6 py-4 text-center">Expires</th>
-          <th class="px-6 py-4 text-center">Actions</th>
+          <th class="px-4 py-3 text-left">Shortcode</th>
+          <th class="px-4 py-3 text-left hide-sm">URL Tujuan</th>
+          <th class="px-4 py-3 text-center">Klik</th>
+          <th class="px-4 py-3 text-center">Aktif</th>
+          <th class="px-4 py-3 text-center hide-sm">Expired</th>
+          <th class="px-4 py-3 text-center">Aksi</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-800 bg-gray-950">
         <% for (const url of urls) { %>
-          <tr class="hover:bg-gray-900 transition-colors">
-            <td class="px-6 py-4 font-mono font-semibold text-indigo-400">
-              <a href="<%= baseUrl %>/<%= url.shortcode %>" target="_blank" class="hover:underline inline-flex items-center gap-2">
-                <%= url.shortcode %>
-                <svg class="w-4 h-4 opacity-0 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </td>
-            <td class="px-6 py-4 max-w-xs truncate text-gray-300" title="<%= url.originalUrl %>">
-              <span class="text-xs bg-gray-800 px-2 py-1 rounded">
-                <%= url.originalUrl.substring(0, 40) %><% if (url.originalUrl.length > 40) { %>...<% } %>
-              </span>
-            </td>
-            <td class="px-6 py-4 text-center font-semibold text-green-400"><%= url.totalClicks %></td>
-            <td class="px-6 py-4 text-center">
-              <input
-                type="checkbox"
-                <%= url.isActive ? 'checked' : '' %>
-                hx-patch="/admin/urls/<%= url.id %>"
-                hx-vals='{"isActive": "<%= url.isActive ? 'false' : 'true' %>"}'
-                hx-swap="none"
-                class="h-4 w-4 cursor-pointer accent-indigo-500 rounded"
-              />
-            </td>
-            <td class="px-6 py-4 text-center text-xs text-gray-400">
-              <%= url.expiresAt ? new Date(url.expiresAt).toLocaleDateString() : '—' %>
-            </td>
-            <td class="px-6 py-4 text-center">
-              <div class="flex items-center justify-center gap-1">
-                <button
-                  hx-get="/admin/urls/<%= url.id %>/edit"
-                  hx-target="#modal-container"
-                  hx-swap="innerHTML"
-                  class="inline-flex items-center gap-1 text-xs text-purple-400 hover:text-white hover:bg-purple-900 hover:bg-opacity-30 px-2 py-1 rounded transition-colors"
-                  title="Edit"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button
-                  hx-get="/admin/urls/<%= url.id %>/qr"
-                  hx-target="#modal-container"
-                  hx-swap="innerHTML"
-                  class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-white hover:bg-gray-800 px-2 py-1 rounded transition-colors"
-                  title="QR Code"
-                >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 11h8V3H3v8zm0 8h8v-8H3v8zm8-16h8V3h-8v8zm0 8h8v-8h-8v8zm4-4h2v2h-2v-2z"/>
-                  </svg>
-                </button>
-                <button
-                  hx-get="/admin/analytics/<%= url.id %>"
-                  hx-target="#panel"
-                  hx-swap="innerHTML"
-                  hx-push-url="true"
-                  onclick="activateTab('analytics')"
-                  class="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-white hover:bg-blue-900 hover:bg-opacity-30 px-2 py-1 rounded transition-colors"
-                  title="Stats"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </button>
-                <button
-                  hx-delete="/admin/urls/<%= url.id %>"
-                  hx-confirm="Delete this shortlink and all its analytics?"
-                  hx-swap="none"
-                  class="inline-flex items-center gap-1 text-xs text-red-400 hover:text-white hover:bg-red-900 hover:bg-opacity-30 px-2 py-1 rounded transition-colors"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
+        <tr class="hover:bg-gray-900/50 transition-colors">
+          <td class="px-4 py-3 font-mono font-semibold text-red-400">
+            <a href="<%= baseUrl %>/<%= url.shortcode %>" target="_blank" rel="noopener" class="hover:underline">
+              /<%= url.shortcode %>
+            </a>
+          </td>
+          <td class="px-4 py-3 max-w-[200px] truncate text-gray-400 text-xs hide-sm" title="<%= url.originalUrl %>">
+            <%= url.originalUrl.substring(0, 50) %><% if (url.originalUrl.length > 50) { %>…<% } %>
+          </td>
+          <td class="px-4 py-3 text-center font-bold text-green-400"><%= url.totalClicks %></td>
+          <td class="px-4 py-3 text-center">
+            <input type="checkbox" id="active-<%= url.id %>" <%= url.isActive ? 'checked' : '' %> class="h-4 w-4 cursor-pointer rounded" style="accent-color: #CC0000;" onchange="toggleUrlActive(<%= url.id %>, this.checked)" />
+          </td>
+          <td class="px-4 py-3 text-center text-xs text-gray-400 hide-sm">
+            <%= url.expiresAt ? new Date(url.expiresAt).toLocaleDateString('id-ID') : '—' %>
+          </td>
+          <td class="px-4 py-3 text-center">
+            <div class="flex items-center justify-center gap-1 flex-wrap">
+              <button hx-get="/admin/urls/<%= url.id %>/edit" hx-target="#modal-container" hx-swap="innerHTML" hx-select="#edit-modal" class="text-xs px-2.5 py-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-700 hover:border-gray-500 transition-all">
+                Edit
+              </button>
+              <button hx-get="/admin/urls/<%= url.id %>/qr" hx-target="#modal-container" hx-swap="innerHTML" hx-select="#qr-modal" class="text-xs px-2.5 py-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-700 hover:border-gray-500 transition-all">
+                QR
+              </button>
+              <button hx-get="/admin/analytics/<%= url.id %>" hx-target="#panel" hx-swap="innerHTML" hx-push-url="/admin/analytics/<%= url.id %>" hx-select="#analytics-detail" onclick="activateTab('analytics')" class="text-xs px-2.5 py-1.5 rounded-lg text-blue-400 hover:text-white hover:bg-blue-900/30 border border-blue-900/50 hover:border-blue-700 transition-all">
+                Stat
+              </button>
+              <span id="del-url-<%= url.id %>" hx-delete="/admin/urls/<%= url.id %>" hx-trigger="confirmed" hx-swap="none" class="hidden"></span>
+              <button onclick="confirmDeleteUrl(<%= url.id %>, '<%= url.shortcode %>')" class="text-xs px-2.5 py-1.5 rounded-lg text-red-400 hover:text-white hover:bg-red-900/30 border border-red-900/50 hover:border-red-700 transition-all">
+                Hapus
+              </button>
+            </div>
+          </td>
+        </tr>
         <% } %>
         <% if (!urls.length) { %>
-          <tr>
-            <td colspan="6" class="px-6 py-12 text-center">
-              <div class="text-gray-500">
-                <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-                <p class="text-sm">No shortlinks yet. Create one above!</p>
-              </div>
-            </td>
-          </tr>
+        <tr>
+          <td colspan="6" class="px-6 py-16 text-center text-gray-500 text-sm">
+            Belum ada shortlink. Buat yang pertama di atas!
+          </td>
+        </tr>
         <% } %>
       </tbody>
     </table>
   </div>
 
-  <!-- Pagination -->
   <% const totalPages = Math.ceil(total / limit); %>
   <% if (totalPages > 1) { %>
-    <div class="mt-6 flex items-center justify-between text-sm text-gray-400">
-      <span>Showing <%= (page - 1) * limit + 1 %>–<%= Math.min(page * limit, total) %> of <%= total %></span>
-      <div class="flex gap-2">
-        <% if (page > 1) { %>
-          <button
-            hx-get="/admin/urls?page=<%= page - 1 %>&limit=<%= limit %>"
-            hx-target="#url-list"
-            hx-select="#url-list"
-            hx-swap="outerHTML"
-            class="rounded bg-gray-800 hover:bg-gray-700 px-4 py-2 transition-colors inline-flex items-center gap-1"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            Previous
-          </button>
-        <% } %>
-        <% if (page < totalPages) { %>
-          <button
-            hx-get="/admin/urls?page=<%= page + 1 %>&limit=<%= limit %>"
-            hx-target="#url-list"
-            hx-select="#url-list"
-            hx-swap="outerHTML"
-            class="rounded bg-gray-800 hover:bg-gray-700 px-4 py-2 transition-colors inline-flex items-center gap-1"
-          >
-            Next
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        <% } %>
-      </div>
+  <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400">
+    <span>Menampilkan <%= (page - 1) * limit + 1 %>-<%= Math.min(page * limit, total) %> dari <%= total %> shortlink</span>
+    <div class="flex gap-2">
+      <% if (page > 1) { %>
+      <button hx-get="/admin/urls?page=<%= page - 1 %>&limit=<%= limit %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" class="rounded-lg bg-gray-800 hover:bg-gray-700 px-4 py-2 transition-colors text-xs font-medium">
+        &larr; Sebelumnya
+      </button>
+      <% } %>
+      <% if (page < totalPages) { %>
+      <button hx-get="/admin/urls?page=<%= page + 1 %>&limit=<%= limit %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" class="rounded-lg bg-gray-800 hover:bg-gray-700 px-4 py-2 transition-colors text-xs font-medium">
+        Berikutnya &rarr;
+      </button>
+      <% } %>
     </div>
+  </div>
   <% } %>
 </section>
 
-<!-- Modal container (QR code, etc.) -->
-<div id="modal-container"></div>
+<script>
+  function toggleUrlActive(id, isActive) {
+    htmx.ajax('PATCH', '/admin/urls/' + id, {
+      swap: 'none',
+      values: {
+        isActive: String(isActive)
+      }
+    });
+  }
+</script>

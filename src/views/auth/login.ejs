@@ -1,86 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login — <%= appName %></title>
-  <link rel="stylesheet" href="/assets/css/app.css" />
+  <link rel="stylesheet" href="/assets/css/login.css" />
   <script src="/assets/js/tailwind.cdn.js"></script>
   <script src="/assets/js/htmx.min.js" defer></script>
 </head>
-<body class="page-center">
-  <div class="w-full max-w-sm space-y-8 px-6">
-    <!-- Logo / Branding -->
-    <div class="text-center">
-      <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl mb-4">
+
+<body>
+  <div class="login-card">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg" style="background: linear-gradient(135deg, #CC0000, #990000);">
         <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+          <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
       </div>
-      <h1 class="text-3xl font-bold tracking-tight"><%= appName %></h1>
-      <p class="mt-2 text-sm text-gray-400">Sign in to your account</p>
+      <h1 class="text-2xl font-bold tracking-tight text-white"><%= appName %></h1>
+      <p class="mt-1 text-sm text-gray-400">Masuk ke panel admin</p>
     </div>
 
-    <!-- Error container — HTMX swaps content here on failed login -->
-    <div id="login-error">
-      <% if (error) { %>
-        <%- include('partials/login-error.ejs', { error }) %>
+    <div id="login-error" class="mb-4">
+      <% if (typeof error !== 'undefined' && error) { %>
+      <%- include('partials/login-error.ejs', { error }) %>
       <% } %>
     </div>
 
-    <!--
-      HTMX Login Form:
-      hx-post      — submits to backend as AJAX (no full page reload)
-      hx-target    — swaps the error container on 401
-      hx-swap      — replace inner HTML of the target
-      hx-indicator — shows a loading spinner while waiting
-    -->
-    <form
-      hx-post="/login"
-      hx-target="#login-error"
-      hx-swap="innerHTML"
-      class="space-y-5"
-    >
+    <form hx-post="/login" hx-target="#login-error" hx-swap="innerHTML" class="space-y-4">
       <div>
-        <label class="block text-sm font-semibold text-gray-300 mb-2" for="username">
-          Username
-        </label>
-        <input
-          id="username"
-          name="username"
-          type="text"
-          required
-          autocomplete="username"
-          class="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-          placeholder="admin"
-        />
+        <label class="block text-sm font-semibold text-gray-300 mb-1.5" for="username">Username</label>
+        <input id="username" name="username" type="text" required autocomplete="username" class="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none transition-all" onfocus="this.style.borderColor='#CC0000'; this.style.boxShadow='0 0 0 3px rgba(204,0,0,0.25)'" onblur="this.style.borderColor=''; this.style.boxShadow=''" placeholder="admin" />
       </div>
       <div>
-        <label class="block text-sm font-semibold text-gray-300 mb-2" for="password">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autocomplete="current-password"
-          class="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-          placeholder="••••••••"
-        />
+        <label class="block text-sm font-semibold text-gray-300 mb-1.5" for="password">Password</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password" class="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none transition-all" onfocus="this.style.borderColor='#CC0000'; this.style.boxShadow='0 0 0 3px rgba(204,0,0,0.25)'" onblur="this.style.borderColor=''; this.style.boxShadow=''" placeholder="••••••••" />
       </div>
-      <button
-        type="submit"
-        class="w-full rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 px-4 py-3 text-sm font-semibold transition-all hover:shadow-lg active:scale-95"
-      >
-        Sign In
+      <button type="submit" class="w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[.98] shadow-md" style="background: linear-gradient(135deg, #CC0000, #990000);">
+        Masuk
       </button>
     </form>
 
-    <!-- Footer -->
-    <p class="text-center text-xs text-gray-500">
-      Secure access to your shortlink management dashboard
+    <p class="mt-6 text-center text-xs text-gray-600">
+      Naka URL Shortener
     </p>
   </div>
+
+  <div id="toast-container" style="position:fixed;top:1rem;right:1rem;z-index:100;display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;pointer-events:none;"></div>
+
+  <script>
+    function showToast(msg, type) {
+      var c = document.getElementById('toast-container');
+      var el = document.createElement('div');
+      el.textContent = msg;
+      var bgColor = type === 'error' ? '#7f1d1d' : type === 'success' ? '#14532d' : '#1f2937';
+      var borderColor = type === 'error' ? '#dc2626' : type === 'success' ? '#16a34a' : '#4b5563';
+      var textColor = type === 'error' ? '#fca5a5' : type === 'success' ? '#86efac' : '#e5e7eb';
+      el.style.cssText = 'background:' + bgColor + ';border:1px solid ' + borderColor + ';color:' + textColor + ';padding:0.75rem 1rem;border-radius:0.75rem;font-size:0.875rem;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.5);opacity:0;transition:opacity 0.3s;max-width:20rem;';
+      c.appendChild(el);
+      requestAnimationFrame(function() {
+        el.style.opacity = '1';
+      });
+      setTimeout(function() {
+        el.style.opacity = '0';
+        setTimeout(function() {
+          el.remove();
+        }, 300);
+      }, 3500);
+    }
+
+    document.body.addEventListener('showLoginToast', function(evt) {
+      var d = evt.detail;
+      if (d && d.message) showToast(d.message, d.type || 'error');
+    });
+  </script>
 </body>
+
 </html>

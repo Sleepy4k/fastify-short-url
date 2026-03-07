@@ -1,19 +1,21 @@
 <div class="space-y-4">
-  <h2 class="text-base font-semibold text-gray-200">Site Configuration</h2>
+  <h2 class="text-base font-semibold text-gray-200">Konfigurasi Aplikasi</h2>
   <div class="rounded-xl border border-gray-800 overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-900 text-gray-400 text-xs uppercase">
-        <tr>
-          <th class="px-4 py-3 text-left">Setting</th>
-          <th class="px-4 py-3 text-left">Description</th>
-          <th class="px-4 py-3 text-left w-72">Value</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-800 bg-gray-950">
-        <% for (const setting of settings) { %>
+    <div class="table-responsive">
+      <table class="w-full text-sm min-w-[400px]">
+        <thead class="bg-gray-900 text-gray-400 text-xs uppercase font-semibold">
+          <tr>
+            <th class="px-4 py-3 text-left">Setting</th>
+            <th class="px-4 py-3 text-left hide-sm">Deskripsi</th>
+            <th class="px-4 py-3 text-left w-64 sm:w-72">Nilai</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-800 bg-gray-950">
+          <% for (const setting of settings) { %>
           <%- include('setting-row.ejs', { setting }) %>
-        <% } %>
-      </tbody>
-    </table>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
