@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — <%= appName %></title>
+  <link rel="stylesheet" href="/assets/css/app.css" />
+  <script src="/assets/js/tailwind.cdn.js"></script>
+  <script src="/assets/js/htmx.min.js" defer></script>
+</head>
+<body class="page-center">
+  <div class="w-full max-w-sm space-y-8 px-6">
+    <!-- Logo / Branding -->
+    <div class="text-center">
+      <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl mb-4">
+        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight"><%= appName %></h1>
+      <p class="mt-2 text-sm text-gray-400">Sign in to your account</p>
+    </div>
+
+    <!-- Error container — HTMX swaps content here on failed login -->
+    <div id="login-error">
+      <% if (error) { %>
+        <%- include('partials/login-error.ejs', { error }) %>
+      <% } %>
+    </div>
+
+    <!--
+      HTMX Login Form:
+      hx-post      — submits to backend as AJAX (no full page reload)
+      hx-target    — swaps the error container on 401
+      hx-swap      — replace inner HTML of the target
+      hx-indicator — shows a loading spinner while waiting
+    -->
+    <form
+      hx-post="/login"
+      hx-target="#login-error"
+      hx-swap="innerHTML"
+      class="space-y-5"
+    >
+      <div>
+        <label class="block text-sm font-semibold text-gray-300 mb-2" for="username">
+          Username
+        </label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          required
+          autocomplete="username"
+          class="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          placeholder="admin"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-300 mb-2" for="password">
+          Password
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autocomplete="current-password"
+          class="w-full rounded-lg bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          placeholder="••••••••"
+        />
+      </div>
+      <button
+        type="submit"
+        class="w-full rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 px-4 py-3 text-sm font-semibold transition-all hover:shadow-lg active:scale-95"
+      >
+        Sign In
+      </button>
+    </form>
+
+    <!-- Footer -->
+    <p class="text-center text-xs text-gray-500">
+      Secure access to your shortlink management dashboard
+    </p>
+  </div>
+</body>
+</html>

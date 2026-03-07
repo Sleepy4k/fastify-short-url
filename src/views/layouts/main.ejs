@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-950">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? title + ' — ' : '' %><%= appName %></title>
+  <script src="/assets/js/tailwind.cdn.js"></script>
+  <script src="/assets/js/htmx.min.js" defer></script>
+</head>
+<body class="h-full text-gray-100 antialiased">
+  <!-- Global error toast used as HX-Retarget fallback -->
+  <div id="global-error" class="fixed top-4 right-4 z-50"></div>
+
+  <%- body %>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<section class="mb-6 rounded-xl border border-gray-800 bg-gradient-to-br from-gray-900 to-gray-950 p-6 shadow-lg">
+  <div class="mb-4">
+    <h2 class="text-lg font-bold text-gray-100">Create New Shortlink</h2>
+    <p class="text-sm text-gray-400 mt-1">Generate a fast, memorable link for your long URLs</p>
+  </div>
+  <div id="create-error" class="mb-3"></div>
+  <form
+    hx-post="/admin/urls"
+    hx-target="#create-error"
+    hx-swap="innerHTML"
+    hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===201) { this.reset(); htmx.trigger('#url-list', 'refresh'); }"
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+  >
+    <div class="sm:col-span-2 lg:col-span-2">
+      <label class="block text-xs font-semibold text-gray-300 mb-2">Destination URL</label>
+      <input
+        name="originalUrl"
+        type="url"
+        required
+        placeholder="https://example.com/very-long-url"
+        class="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+      />
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-gray-300 mb-2">Custom Alias (Optional)</label>
+      <input
+        name="customAlias"
+        type="text"
+        placeholder="my-link"
+        class="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+      />
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-gray-300 mb-2">Expires At (Optional)</label>
+      <input
+        name="expiresAt"
+        type="datetime-local"
+        class="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+      />
+    </div>
+    <div class="flex items-end">
+      <button
+        type="submit"
+        class="w-full rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 px-4 py-2.5 text-sm font-semibold transition-all hover:shadow-lg active:scale-95"
+      >
+        Create Link
+      </button>
+    </div>
+  </form>
+</section>

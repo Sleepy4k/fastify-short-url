@@ -1,0 +1,107 @@
+<div class="space-y-6">
+  <div class="flex items-center gap-3 mb-2">
+    <button
+      hx-get="/admin/analytics"
+      hx-target="#panel"
+      hx-swap="innerHTML"
+      hx-push-url="/admin/analytics"
+      class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-400 hover:text-indigo-300 px-3 py-2 rounded-lg hover:bg-indigo-900 hover:bg-opacity-20 transition-all"
+      type="button"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Analytics
+    </button>
+  </div>
+  <h2 class="text-xl font-bold text-gray-100">
+    Stats for <span class="font-mono text-indigo-400"><%= baseUrl %>/<%= url.shortcode %></span>
+  </h2>
+
+  <!-- Summary -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    <div class="rounded-xl bg-gray-900 border border-gray-800 p-4">
+      <p class="text-xs text-gray-400">Total Clicks</p>
+      <p class="text-2xl font-bold text-green-400"><%= url.totalClicks %></p>
+    </div>
+    <div class="rounded-xl bg-gray-900 border border-gray-800 p-4">
+      <p class="text-xs text-gray-400">Unique Clicks</p>
+      <p class="text-2xl font-bold text-blue-400"><%= uniqueClicks %></p>
+    </div>
+    <div class="rounded-xl bg-gray-900 border border-gray-800 p-4">
+      <p class="text-xs text-gray-400">Created</p>
+      <p class="text-sm text-gray-200"><%= new Date(url.createdAt).toLocaleDateString() %></p>
+    </div>
+    <div class="rounded-xl bg-gray-900 border border-gray-800 p-4 sm:col-span-2 flex items-center justify-between">
+      <div>
+        <p class="text-xs text-gray-400">Reset Analytics</p>
+        <p class="text-xs text-gray-500 mt-0.5">Clears all click records</p>
+      </div>
+      <button
+        hx-delete="/admin/analytics/<%= url.id %>/reset"
+        hx-confirm="Reset all analytics for this link?"
+        hx-target="closest div"
+        hx-swap="outerHTML"
+        class="text-xs rounded bg-red-800 hover:bg-red-700 px-3 py-1.5 transition-colors"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Clicks by Day (simple text chart) -->
+  <% if (clicksByDay.length) { %>
+    <div class="rounded-xl border border-gray-800 bg-gray-900 p-4">
+      <h3 class="text-sm font-semibold mb-3 text-gray-200">Clicks / Day (last 30 days)</h3>
+      <div class="space-y-1">
+        <% const maxDay = Math.max(...clicksByDay.map(d => d.count)); %>
+        <% for (const day of clicksByDay) { %>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="w-24 text-gray-400 shrink-0"><%= day.day %></span>
+            <div class="flex-1 bg-gray-800 rounded-full h-2">
+              <div
+                class="bg-indigo-500 h-2 rounded-full"
+                style="width: <%= maxDay > 0 ? Math.round((day.count / maxDay) * 100) : 0 %>%"
+              ></div>
+            </div>
+            <span class="w-8 text-right font-mono text-indigo-300"><%= day.count %></span>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Recent Clicks Table -->
+  <div class="rounded-xl border border-gray-800 overflow-hidden">
+    <div class="bg-gray-900 px-4 py-3 border-b border-gray-800">
+      <h3 class="text-sm font-semibold text-gray-200">Recent Clicks (last 50)</h3>
+    </div>
+    <table class="w-full text-xs">
+      <thead class="bg-gray-900 text-gray-400 uppercase">
+        <tr>
+          <th class="px-4 py-2 text-left">Time</th>
+          <th class="px-4 py-2 text-left">IP (hashed)</th>
+          <th class="px-4 py-2 text-left">User-Agent</th>
+          <th class="px-4 py-2 text-left">Referer</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800 bg-gray-950">
+        <% for (const click of recentClicks) { %>
+          <tr class="hover:bg-gray-900">
+            <td class="px-4 py-2 text-gray-400 whitespace-nowrap">
+              <%= new Date(click.clickedAt).toLocaleString() %>
+            </td>
+            <td class="px-4 py-2 font-mono text-gray-500 truncate max-w-[100px]">
+              <%= click.ipHash ? click.ipHash.slice(0, 12) + '…' : '—' %>
+            </td>
+            <td class="px-4 py-2 text-gray-400 truncate max-w-xs"><%= click.userAgent || '—' %></td>
+            <td class="px-4 py-2 text-gray-400 truncate max-w-xs"><%= click.referer || '—' %></td>
+          </tr>
+        <% } %>
+        <% if (!recentClicks.length) { %>
+          <tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">No clicks recorded yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

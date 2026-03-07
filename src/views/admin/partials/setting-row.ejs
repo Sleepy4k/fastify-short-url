@@ -1,0 +1,45 @@
+<tr id="setting-<%= setting.key %>" class="hover:bg-gray-900 transition-colors">
+  <td class="px-4 py-3 font-medium text-gray-200"><%= setting.label %></td>
+  <td class="px-4 py-3 text-xs text-gray-400"><%= setting.description ?? '' %></td>
+  <td class="px-4 py-3">
+    <% if (setting.type === 'boolean') { %>
+      <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+        <div class="relative">
+          <input
+            type="checkbox"
+            class="sr-only peer"
+            <%= setting.value === 'true' ? 'checked' : '' %>
+            hx-patch="/admin/settings/<%= setting.key %>"
+            hx-vals='js:{value: event.target.checked ? "true" : "false"}'
+            hx-target="#setting-<%= setting.key %>"
+            hx-swap="outerHTML"
+          />
+          <div class="w-10 h-5 bg-gray-600 peer-checked:bg-indigo-600 rounded-full transition-colors"></div>
+          <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
+        </div>
+        <span class="text-xs font-medium <%= setting.value === 'true' ? 'text-indigo-300' : 'text-gray-500' %>"><%= setting.value === 'true' ? 'Enabled' : 'Disabled' %></span>
+      </label>
+    <% } else { %>
+      <form
+        hx-patch="/admin/settings/<%= setting.key %>"
+        hx-target="this"
+        hx-swap="none"
+        hx-on::after-request="if(event.detail.successful) showToast('Saved', 'success')"
+        class="flex gap-2"
+      >
+        <input
+          type="<%= setting.type === 'number' ? 'number' : 'text' %>"
+          name="value"
+          value="<%= setting.value %>"
+          class="flex-1 rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+        />
+        <button
+          type="submit"
+          class="px-3 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-xs font-semibold transition-colors whitespace-nowrap"
+        >
+          Save
+        </button>
+      </form>
+    <% } %>
+  </td>
+</tr>

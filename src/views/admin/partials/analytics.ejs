@@ -1,0 +1,89 @@
+<div class="space-y-6">
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <div class="rounded-xl bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800 p-6 shadow-lg">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold">Total Links</p>
+          <p class="mt-2 text-3xl font-bold text-indigo-400"><%= totalUrls %></p>
+        </div>
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-indigo-900 bg-opacity-30 rounded-lg">
+          <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="rounded-xl bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800 p-6 shadow-lg">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold">Total Clicks</p>
+          <p class="mt-2 text-3xl font-bold text-green-400"><%= totalClicks %></p>
+        </div>
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-green-900 bg-opacity-30 rounded-lg">
+          <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 0l-3-3m3 3L6 5m6-1h6a2 2 0 012 2v12a2 2 0 01-2 2h-6a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="rounded-xl bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800 p-6 shadow-lg">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold">Unique Clicks</p>
+          <p class="mt-2 text-3xl font-bold text-blue-400"><%= uniqueClicks %></p>
+        </div>
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-900 bg-opacity-30 rounded-lg">
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Links -->
+  <div class="rounded-xl border border-gray-800 overflow-hidden shadow-lg">
+    <div class="bg-gray-900 px-6 py-4 border-b border-gray-800">
+      <h3 class="text-sm font-bold text-gray-100">Top 10 Links</h3>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="bg-gray-950 text-gray-300 text-xs font-semibold uppercase">
+        <tr>
+          <th class="px-6 py-3 text-left">Shortcode</th>
+          <th class="px-6 py-3 text-left">Destination</th>
+          <th class="px-6 py-3 text-right">Total Clicks</th>
+          <th class="px-6 py-3 text-right">Unique Clicks</th>
+          <th class="px-6 py-3 text-center">Detail</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800 bg-gray-950">
+        <% for (const url of topUrls) { %>
+          <tr class="hover:bg-gray-900 transition-colors">
+            <td class="px-6 py-3 font-mono font-semibold text-indigo-400">
+              <a href="<%= baseUrl %>/<%= url.shortcode %>" target="_blank" class="hover:underline">
+                <%= url.shortcode %>
+              </a>
+            </td>
+            <td class="px-6 py-3 max-w-xs truncate text-gray-300"><%= url.originalUrl %></td>
+            <td class="px-6 py-3 text-right font-semibold text-green-400"><%= url.totalClicks %></td>
+            <td class="px-6 py-3 text-right font-semibold text-blue-400"><%= url.uniqueClicks %></td>
+            <td class="px-6 py-3 text-center">
+              <button
+                hx-get="/admin/analytics/<%= url.id %>"
+                hx-target="#panel"
+                hx-swap="innerHTML"
+                class="text-xs text-indigo-400 hover:text-white transition-colors font-semibold"
+              >
+                View →
+              </button>
+            </td>
+          </tr>
+        <% } %>
+        <% if (!topUrls.length) { %>
+          <tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No data yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

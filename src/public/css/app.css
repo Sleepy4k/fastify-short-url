@@ -1,0 +1,30 @@
+/* Base reset for standalone pages (login, error, maintenance) */
+.page-center {
+  margin: 0;
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: #030712;
+  color: #f3f4f6;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Dashboard tab buttons */
+.tab-btn {
+  color: rgb(156 163 175);
+  border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn:hover {
+  color: rgb(229 231 235);
+  border-color: rgb(75 85 99);
+}
+.tab-btn.active {
+  color: #fff;
+  border-color: rgb(99 102 241);
+}
+.tab-btn.active:hover {
+  color: #fff;
+  border-color: rgb(99 102 241);
+}

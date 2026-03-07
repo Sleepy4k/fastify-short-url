@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-950">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — <%= appName %></title>
+  <meta name="htmx-config" content='{"timeout":10000}' />
+  <script src="/assets/js/tailwind.cdn.js"></script>
+  <link rel="stylesheet" href="/assets/css/app.css" />
+  <script src="/assets/js/htmx.min.js" defer></script>
+</head>
+<body class="min-h-screen bg-gray-950 text-gray-100">
+
+<div id="logout-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+  <div class="absolute inset-0 bg-black bg-opacity-60 backdrop-blur-sm" onclick="document.getElementById('logout-modal').classList.add('hidden')"></div>
+  <div class="relative bg-gray-900 rounded-xl border border-gray-700 shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+    <div class="inline-flex items-center justify-center w-14 h-14 bg-red-900 bg-opacity-40 border border-red-700 rounded-full mb-4">
+      <svg class="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+      </svg>
+    </div>
+    <h2 class="text-lg font-semibold text-white mb-2">Sign out?</h2>
+    <p class="text-sm text-gray-400 mb-6">You will be redirected to the login page.</p>
+    <div class="flex gap-3 justify-center">
+      <button onclick="document.getElementById('logout-modal').classList.add('hidden')" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm font-medium transition-colors">Cancel</button>
+      <form method="POST" action="/logout" class="inline">
+        <button type="submit" class="px-5 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-sm font-medium text-white transition-colors">Sign out</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<nav class="border-b border-gray-800 bg-gray-900 px-6 py-3 flex items-center justify-between sticky top-0 z-40 shadow-md">
+  <div class="flex items-center gap-3">
+    <div class="inline-flex items-center justify-center w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg">
+      <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+      </svg>
+    </div>
+    <span class="font-bold text-base text-white"><%= appName %></span>
+  </div>
+  <div class="flex items-center gap-3">
+    <% if (maintenanceMode) { %>
+      <span class="rounded-full bg-yellow-900 bg-opacity-50 border border-yellow-700 px-3 py-1 text-xs font-medium text-yellow-200">🔧 Maintenance</span>
+    <% } %>
+    <span class="text-xs text-gray-400">👤 <span class="font-semibold text-gray-200"><%= user.username %></span></span>
+    <button onclick="document.getElementById('logout-modal').classList.remove('hidden')" class="text-xs text-gray-400 hover:text-red-400 font-medium px-3 py-1.5 rounded-lg hover:bg-gray-800 transition-colors">Logout</button>
+  </div>
+</nav>
+
+<div class="border-b border-gray-800 bg-gray-900 px-6 sticky top-[49px] z-30">
+  <nav class="flex" aria-label="Tabs">
+    <button data-tab="links" hx-get="/admin/links" hx-target="#panel" hx-swap="innerHTML" hx-push-url="true" onclick="activateTab('links')" class="tab-btn<%= tab === 'links' ? ' active' : '' %> px-4 py-3 font-medium inline-flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+      Links
+    </button>
+    <button data-tab="analytics" hx-get="/admin/analytics" hx-target="#panel" hx-swap="innerHTML" hx-push-url="true" onclick="activateTab('analytics')" class="tab-btn<%= tab === 'analytics' ? ' active' : '' %> px-4 py-3 font-medium inline-flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Analytics
+    </button>
+    <button data-tab="settings" hx-get="/admin/settings" hx-target="#panel" hx-swap="innerHTML" hx-push-url="true" onclick="activateTab('settings')" class="tab-btn<%= tab === 'settings' ? ' active' : '' %> px-4 py-3 font-medium inline-flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Settings
+    </button>
+    <% if (user.role === 'superadmin') { %>
+    <button data-tab="users" hx-get="/admin/users" hx-target="#panel" hx-swap="innerHTML" hx-push-url="true" onclick="activateTab('users')" class="tab-btn<%= tab === 'users' ? ' active' : '' %> px-4 py-3 font-medium inline-flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      Users
+    </button>
+    <% } %>
+  </nav>
+</div>
+
+<main class="p-6 max-w-7xl mx-auto">
+  <div id="panel"><%- panelHtml %></div>
+</main>
+
+<div id="modal-container"></div>
+
+<script>
+  function activateTab(name) {
+    document.querySelectorAll('[data-tab]').forEach(function(el) {
+      el.classList.toggle('active', el.dataset.tab === name);
+    });
+  }
+
+  function showToast(msg, type) {
+    var el = document.createElement('div');
+    el.textContent = msg;
+    var base = 'fixed top-4 right-4 z-[100] px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xl border pointer-events-none select-none';
+    var colors = type === 'success' ? ' bg-green-900 border-green-700 text-green-200' : type === 'error' ? ' bg-red-900 border-red-700 text-red-200' : ' bg-gray-800 border-gray-600 text-gray-200';
+    el.className = base + colors;
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 2500);
+  }
+
+  document.addEventListener('htmx:pushedIntoHistory', function() {
+    var map = { '/admin/links': 'links', '/admin/analytics': 'analytics', '/admin/settings': 'settings', '/admin/users': 'users' };
+    var path = window.location.pathname;
+    var t = map[path] || (path.startsWith('/admin/analytics/') ? 'analytics' : null);
+    if (t) activateTab(t);
+  });
+</script>
+
+</body>
+</html>
