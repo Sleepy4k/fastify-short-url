@@ -18,7 +18,14 @@ declare module "fastify" {
       REDIS_ENABLED: string;
       REDIS_HOST: string;
       REDIS_PORT: number;
+      REDIS_USERNAME: string;
       REDIS_PASSWORD: string;
+      REDIS_DB: number;
+      REDIS_KEY_PREFIX: string;
+      REDIS_TLS: string;
+      REDIS_FAMILY: number;
+      REDIS_CONNECT_TIMEOUT: number;
+      REDIS_COMMAND_TIMEOUT: number;
       REDIS_TTL: number;
       BASE_URL: string;
     };
@@ -47,7 +54,14 @@ const schema = {
     REDIS_ENABLED: { type: "string", default: "false" },
     REDIS_HOST: { type: "string", default: "127.0.0.1" },
     REDIS_PORT: { type: "number", default: 6379 },
+    REDIS_USERNAME: { type: "string", default: "" },
     REDIS_PASSWORD: { type: "string", default: "" },
+    REDIS_DB: { type: "number", default: 0 },
+    REDIS_KEY_PREFIX: { type: "string", default: "" },
+    REDIS_TLS: { type: "string", default: "false" },
+    REDIS_FAMILY: { type: "number", default: 4 },
+    REDIS_CONNECT_TIMEOUT: { type: "number", default: 10000 },
+    REDIS_COMMAND_TIMEOUT: { type: "number", default: 5000 },
     REDIS_TTL: { type: "number", default: 3600 },
     BASE_URL: { type: "string", default: "http://localhost:3000" },
   },
