@@ -23,16 +23,16 @@ export async function logsPage(
 
   if (req.headers["hx-request"]) {
     reply.header("Cache-Control", "no-cache");
-    return reply.view("admin/partials/logs.ejs", { ...data, layout: false });
+    return reply.view("pages/dashboard/components/logs.ejs", { ...data, layout: false });
   }
 
   const panelHtml = await ejs.renderFile(
-    path.join(app.entryPath, "views", "admin/partials/logs.ejs"),
+    path.join(app.entryPath, "views", "pages/dashboard/components/logs.ejs"),
     { ...data },
     { rmWhitespace: true },
   );
   const siteSettings = await app.getSettings();
-  return reply.view("admin/dashboard.ejs", {
+  return reply.view("pages/dashboard/index.ejs", {
     user: req.user,
     tab: "logs",
     panelHtml,

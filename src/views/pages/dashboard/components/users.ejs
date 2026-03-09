@@ -65,7 +65,7 @@ if (_uendPage - _ustartPage < 4) _ustartPage = Math.max(1, _uendPage - 4);
       <% if (total === 0) { %>
       Tidak ada pengguna<% if (search) { %> untuk "<strong class="text-gray-400"><%= search %></strong>"<% } %>
       <% } else { %>
-      Menampilkan <strong class="text-gray-300"><%= (page - 1) * limit + 1 %>–<%= Math.min(page * limit, total) %></strong> dari <strong class="text-gray-300"><%= total %></strong> pengguna
+      Menampilkan <strong class="text-gray-300"><%= (page - 1) * limit + 1 %>-<%= Math.min(page * limit, total) %></strong> dari <strong class="text-gray-300"><%= total %></strong> pengguna
       <% } %>
     </span>
     <% if (search) { %>

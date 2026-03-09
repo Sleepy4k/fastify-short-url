@@ -11,7 +11,7 @@ export async function profilePage(
   if (!profile) return reply.status(404).send();
 
   if (req.headers["hx-request"]) {
-    return reply.view("admin/partials/profile.ejs", {
+    return reply.view("pages/dashboard/components/profile.ejs", {
       profile,
       layout: false,
     });
@@ -22,12 +22,12 @@ export async function profilePage(
   const path = await import("path");
   const viewsDir = path.join(import.meta.dir, "../../views");
   const panelHtml = await ejs.renderFile(
-    path.join(viewsDir, "admin/partials/profile.ejs"),
+    path.join(viewsDir, "pages/dashboard/components/profile.ejs"),
     { profile },
     { rmWhitespace: true },
   );
   const siteSettings = await app.getSettings();
-  return reply.view("admin/dashboard.ejs", {
+  return reply.view("pages/dashboard/index.ejs", {
     user: req.user,
     tab: "profile",
     panelHtml,
@@ -50,12 +50,12 @@ export async function updatePassword(
         showToast: { message: "Password berhasil diperbarui.", type: "success" },
       }),
     );
-    return reply.view("admin/partials/form-error.ejs", { layout: false });
+    return reply.view("pages/dashboard/components/form-error.ejs", { layout: false });
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.";
     return reply
       .status(400)
-      .view("admin/partials/form-error.ejs", { error: message, layout: false });
+      .view("pages/dashboard/components/form-error.ejs", { error: message, layout: false });
   }
 }

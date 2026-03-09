@@ -55,7 +55,7 @@ export async function createUser(
     return reply
       .status(400)
       .header("HX-Retarget", "#user-form-error")
-      .view("admin/partials/form-error.ejs", { error: message, layout: false });
+      .view("pages/dashboard/components/form-error.ejs", { error: message, layout: false });
   }
 }
 

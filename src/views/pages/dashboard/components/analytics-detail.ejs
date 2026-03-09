@@ -87,20 +87,21 @@ if (_cendPage - _cstartPage < 4) _cstartPage = Math.max(1, _cendPage - 4);
   <% } %>
 
   <div class="rounded-xl border border-gray-800 overflow-hidden">
-      <h3 class="text-sm font-bold text-gray-100">Riwayat Klik</h3>
-      <div class="flex items-center gap-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 bg-gray-900 border-b border-gray-800">
+      <div>
+        <h3 class="text-sm font-bold text-gray-100">Riwayat Klik</h3>
         <span class="text-xs text-gray-500">Total <strong class="text-gray-300"><%= totalClicks %></strong> klik</span>
-        <div class="relative">
-          <select id="clicks-limit-select" class="appearance-none rounded-lg bg-gray-800 border border-gray-700 px-2.5 pr-7 py-1.5 text-xs text-gray-300 focus:outline-none cursor-pointer hover:bg-gray-700 transition-colors" onchange="changeClicksLimit(this.value, <%= url.id %>)">
-            <% for (const n of [10, 20, 50]) { %>
-            <option value="<%= n %>" <%= clicksLimit === n ? 'selected' : '' %>><%= n %> / hal</option>
-            <% } %>
-          </select>
-          <div class="pointer-events-none absolute inset-y-0 right-1.5 flex items-center">
-            <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
+      </div>
+      <div class="relative">
+        <select id="clicks-limit-select" class="appearance-none rounded-lg bg-gray-800 border border-gray-700 px-2.5 pr-7 py-1.5 text-xs text-gray-300 focus:outline-none cursor-pointer hover:bg-gray-700 transition-colors" onchange="changeClicksLimit(this.value, <%= url.id %>)">
+          <% for (const n of [10, 20, 50]) { %>
+          <option value="<%= n %>" <%= clicksLimit === n ? 'selected' : '' %>><%= n %> / hal</option>
+          <% } %>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-1.5 flex items-center">
+          <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
     </div>

@@ -10,10 +10,28 @@ export interface LogActivityOpts {
   ipAddress?: string | null;
 }
 
+// In-process dedup guard: prevent same action+admin being written twice within 2 s
+const _recentKeys = new Map<string, number>();
+function _isDuplicate(opts: LogActivityOpts): boolean {
+  const key = `${opts.adminId ?? "anon"}:${opts.action}:${opts.description.substring(0, 60)}`;
+  const now = Date.now();
+  const last = _recentKeys.get(key);
+  if (last && now - last < 2000) return true;
+  _recentKeys.set(key, now);
+  // Evict stale entries periodically to avoid memory bloat
+  if (_recentKeys.size > 500) {
+    for (const [k, t] of _recentKeys) {
+      if (now - t > 10000) _recentKeys.delete(k);
+    }
+  }
+  return false;
+}
+
 export async function logActivity(
   db: DB,
   opts: LogActivityOpts,
 ): Promise<void> {
+  if (_isDuplicate(opts)) return;
   try {
     await db.insert(activityLogs).values({
       adminId: opts.adminId ?? null,

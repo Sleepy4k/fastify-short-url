@@ -20,7 +20,7 @@ export async function loginPage(
   } catch {
     // not authenticated
   }
-  return reply.view("auth/login.ejs", { error: null, layout: false });
+  return reply.view("pages/auth/login.ejs", { error: null, layout: false });
 }
 
 export async function handleLogin(
@@ -45,9 +45,9 @@ export async function handleLogin(
           "HX-Trigger",
           JSON.stringify({ showLoginToast: { message: msg, type: "error" } }),
         )
-        .view("auth/partials/login-error.ejs", { error: msg, layout: false });
+        .view("pages/auth/partials/login-error.ejs", { error: msg, layout: false });
     }
-    return reply.view("auth/login.ejs", { error: msg, layout: false });
+    return reply.view("pages/auth/login.ejs", { error: msg, layout: false });
   }
 
   const token = app.jwt.sign({

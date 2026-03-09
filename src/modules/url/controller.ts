@@ -24,20 +24,19 @@ export async function handleRedirect(
     app.db,
     app.redis,
     code,
-    isBot, // skip cache for bots so we get urlData with SEO info
+    isBot,
   );
 
   if (result.status === "active") {
     setImmediate(() => void svc.recordClick(app.db, code, req));
 
-    // Serve OG preview page to social media crawlers if SEO metadata exists
     const urlData = result.urlData;
     if (
       isBot &&
       urlData &&
       (urlData.title || urlData.description || urlData.ogImageUrl)
     ) {
-      return reply.view("url/preview.ejs", {
+      return reply.view("pages/url/preview.ejs", {
         url: urlData,
         targetUrl: result.url,
         shortUrl: `${app.config.BASE_URL}/${code}`,
@@ -53,7 +52,7 @@ export async function handleRedirect(
   }
 
   if (result.status === "password_required") {
-    return reply.view("url/password.ejs", {
+    return reply.view("pages/url/password.ejs", {
       code,
       error: null,
       url: result.urlData,
@@ -95,7 +94,7 @@ export async function handlePasswordRedirect(
 
   const valid = await svc.verifyUrlPassword(row.passwordHash, password ?? "");
   if (!valid) {
-    return reply.view("url/password.ejs", {
+    return reply.view("pages/url/password.ejs", {
       code,
       error: "Password salah. Silakan coba lagi.",
       url: row,
@@ -118,9 +117,16 @@ export async function listUrls(
   const limit = Math.min(100, Math.max(1, Number(q.limit ?? 10)));
   const search = (q.search ?? "").trim();
   const sort = q.sort ?? "createdAt:desc";
+
+  if (!req.headers["hx-request"]) {
+    const qs = new URLSearchParams({ page: String(page), limit: String(limit), sort });
+    if (search) qs.set("search", search);
+    return reply.redirect(`/admin/links?${qs.toString()}`);
+  }
+
   const data = await svc.getUrlsPaginated(app.db, page, limit, search, sort);
   reply.header("Cache-Control", "private, max-age=5");
-  return reply.view("admin/partials/url-table.ejs", {
+  return reply.view("pages/dashboard/components/url-table.ejs", {
     ...data,
     page,
     limit,
@@ -177,7 +183,7 @@ export async function createUrl(
     return reply
       .status(400)
       .header("HX-Retarget", "#create-error")
-      .view("admin/partials/form-error.ejs", { error: message, layout: false });
+      .view("pages/dashboard/components/form-error.ejs", { error: message, layout: false });
   }
 }
 
@@ -233,7 +239,7 @@ export async function updateUrl(
     return reply
       .status(400)
       .header("HX-Retarget", "#edit-error")
-      .view("admin/partials/form-error.ejs", { error: message, layout: false });
+      .view("pages/dashboard/components/form-error.ejs", { error: message, layout: false });
   }
 }
 
@@ -310,7 +316,7 @@ export async function getQrCode(
   const shortUrl = `${app.config.BASE_URL}/${row.shortcode}`;
   const qrDataUrl = await svc.generateQrCode(shortUrl);
   reply.header("Cache-Control", "private, max-age=3600");
-  return reply.view("admin/partials/qr-modal.ejs", {
+  return reply.view("pages/dashboard/components/qr-modal.ejs", {
     qrDataUrl,
     shortUrl,
     layout: false,
@@ -325,7 +331,7 @@ export async function getEditModal(
   const id = Number(req.params.id);
   const row = await svc.getUrlById(app.db, id);
   if (!row) return reply.status(404).send({ error: "Not found" });
-  return reply.view("admin/partials/edit-modal.ejs", {
+  return reply.view("pages/dashboard/components/edit-modal.ejs", {
     url: row,
     layout: false,
   });

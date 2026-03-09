@@ -42,5 +42,5 @@ export async function updateSetting(
       "HX-Trigger",
       JSON.stringify({ showToast: { message, type: "success" } }),
     )
-    .view("admin/partials/setting-row.ejs", { setting: row, layout: false });
+    .view("pages/dashboard/components/setting-row.ejs", { setting: row, layout: false });
 }

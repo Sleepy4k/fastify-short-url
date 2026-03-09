@@ -22,7 +22,7 @@ async function fullPage(
   panelHtml: string,
   siteSettings: Record<string, string>,
 ) {
-  return reply.view("admin/dashboard.ejs", {
+  return reply.view("pages/dashboard/index.ejs", {
     user,
     tab,
     panelHtml,
@@ -46,14 +46,14 @@ export async function linksPage(
 
   if (req.headers["hx-request"]) {
     reply.header("Cache-Control", "private, max-age=5");
-    return reply.view("admin/partials/url-table.ejs", {
+    return reply.view("pages/dashboard/components/url-table.ejs", {
       ...data,
       baseUrl: app.config.BASE_URL,
       layout: false,
     });
   }
 
-  const panelHtml = await renderPartial(app, "admin/partials/url-table.ejs", data);
+  const panelHtml = await renderPartial(app, "pages/dashboard/components/url-table.ejs", data);
   const siteSettings = await app.getSettings();
   return fullPage(reply, req.user, "links", panelHtml, siteSettings);
 }
@@ -67,13 +67,13 @@ export async function analyticsPage(
 
   if (req.headers["hx-request"]) {
     reply.header("Cache-Control", "private, max-age=10");
-    return reply.view("admin/partials/analytics.ejs", {
+    return reply.view("pages/dashboard/components/analytics.ejs", {
       ...data,
       layout: false,
     });
   }
 
-  const panelHtml = await renderPartial(app, "admin/partials/analytics.ejs", data);
+  const panelHtml = await renderPartial(app, "pages/dashboard/components/analytics.ejs", data);
   const siteSettings = await app.getSettings();
   return fullPage(reply, req.user, "analytics", panelHtml, siteSettings);
 }
@@ -93,7 +93,7 @@ export async function analyticsDetailPage(
   reply.header("Cache-Control", "private, max-age=5");
 
   if (req.headers["hx-request"]) {
-    return reply.view("admin/partials/analytics-detail.ejs", {
+    return reply.view("pages/dashboard/components/analytics-detail.ejs", {
       ...detail,
       baseUrl: app.config.BASE_URL,
       layout: false,
@@ -102,7 +102,7 @@ export async function analyticsDetailPage(
 
   const panelHtml = await renderPartial(
     app,
-    "admin/partials/analytics-detail.ejs",
+    "pages/dashboard/components/analytics-detail.ejs",
     detail,
   );
   const siteSettings = await app.getSettings();
@@ -118,13 +118,13 @@ export async function settingsPage(
 
   if (req.headers["hx-request"]) {
     reply.header("Cache-Control", "private, max-age=30");
-    return reply.view("admin/partials/settings.ejs", {
+    return reply.view("pages/dashboard/components/settings.ejs", {
       ...data,
       layout: false,
     });
   }
 
-  const panelHtml = await renderPartial(app, "admin/partials/settings.ejs", data);
+  const panelHtml = await renderPartial(app, "pages/dashboard/components/settings.ejs", data);
   const siteSettings = await app.getSettings();
   return fullPage(reply, req.user, "settings", panelHtml, siteSettings);
 }
@@ -149,14 +149,14 @@ export async function usersPage(
   const data = { ...usersData, currentUserId: req.user.id };
 
   if (req.headers["hx-request"]) {
-    return reply.view("admin/partials/users.ejs", {
+    return reply.view("pages/dashboard/components/users.ejs", {
       ...data,
       layout: false,
       async: true,
     });
   }
 
-  const panelHtml = await renderPartial(app, "admin/partials/users.ejs", data);
+  const panelHtml = await renderPartial(app, "pages/dashboard/components/users.ejs", data);
   const siteSettings = await app.getSettings();
   return fullPage(reply, req.user, "users", panelHtml, siteSettings);
 }

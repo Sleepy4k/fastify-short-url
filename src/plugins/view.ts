@@ -15,10 +15,15 @@ declare module "fastify" {
 
 function autoLayout(template: string): string | false {
   const t = template.replace(/\\/g, "/");
-  if (t.includes("/partials/") || t.startsWith("partials/")) return false;
+  if (t.includes("/components/") || t.includes("/partials/")) return false;
   if (t.startsWith("errors/")) return false;
+  if (t.startsWith("pages/auth/")) return false;
+  if (t.startsWith("pages/dashboard/")) return false;
+  if (t.startsWith("pages/url/")) return false;
+  // Legacy paths (kept during transition)
   if (t.startsWith("auth/")) return false;
-  if (t.startsWith("admin/dashboard")) return false;
+  if (t.startsWith("admin/")) return false;
+  if (t.startsWith("url/")) return false;
   return "layouts/main.ejs";
 }
 
