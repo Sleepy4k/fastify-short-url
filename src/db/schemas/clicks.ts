@@ -15,7 +15,7 @@ export const clicks = mysqlTable(
     urlId: int("url_id")
       .notNull()
       .references(() => urls.id, { onDelete: "cascade" }),
-    ipHash: varchar("ip_hash", { length: 64 }),
+    ipAddress: varchar("ip_address", { length: 45 }),
     userAgent: varchar("user_agent", { length: 512 }),
     referer: varchar("referer", { length: 512 }),
     clickedAt: timestamp("clicked_at")

@@ -4,6 +4,10 @@ export interface CreateUrlDto {
   originalUrl: string;
   customAlias?: string;
   expiresAt?: string;
+  password?: string;
+  title?: string;
+  description?: string;
+  ogImageUrl?: string;
 }
 
 export interface UpdateUrlDto {
@@ -12,4 +16,9 @@ export interface UpdateUrlDto {
   /** Accepts boolean or the string "true"/"false" from form body parsers. */
   isActive?: string | boolean;
   expiresAt?: string;
+  password?: string;
+  clearPassword?: string | boolean;
+  title?: string;
+  description?: string;
+  ogImageUrl?: string;
 }

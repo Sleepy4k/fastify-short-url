@@ -1,19 +1,33 @@
-import { eq, desc, count, sql } from "drizzle-orm";
+import { eq, desc, asc, count, sql, or, like } from "drizzle-orm";
 import type { DB } from "../../db/connection.ts";
 import { urls, clicks, settings, admins } from "../../db/schema.ts";
 
-export async function getLinksData(db: DB, page: number, limit: number) {
+export async function getLinksData(
+  db: DB,
+  page: number,
+  limit: number,
+  search = "",
+  sort = "createdAt:desc",
+) {
   const offset = (page - 1) * limit;
+  const s = search.trim();
+  const searchCond = s
+    ? or(like(urls.shortcode, `%${s}%`), like(urls.originalUrl, `%${s}%`))
+    : undefined;
+  const [sf, sd] = sort.split(":");
+  const orderCol =
+    sf === "clicks"
+      ? sd === "asc" ? asc(urls.totalClicks) : desc(urls.totalClicks)
+      : sf === "shortcode"
+        ? sd === "asc" ? asc(urls.shortcode) : desc(urls.shortcode)
+        : sf === "expiresAt"
+          ? sd === "asc" ? asc(urls.expiresAt) : desc(urls.expiresAt)
+          : sd === "asc" ? asc(urls.createdAt) : desc(urls.createdAt);
   const [rows, countResult] = await Promise.all([
-    db
-      .select()
-      .from(urls)
-      .orderBy(desc(urls.createdAt))
-      .limit(limit)
-      .offset(offset),
-    db.select({ count: sql<number>`count(*)` }).from(urls),
+    db.select().from(urls).where(searchCond).orderBy(orderCol).limit(limit).offset(offset),
+    db.select({ count: sql<number>`count(*)` }).from(urls).where(searchCond),
   ]);
-  return { urls: rows, page, limit, total: Number(countResult[0]?.count ?? 0) };
+  return { urls: rows, page, limit, total: Number(countResult[0]?.count ?? 0), search, sort };
 }
 
 export async function getAnalyticsOverview(db: DB) {
@@ -21,9 +35,9 @@ export async function getAnalyticsOverview(db: DB) {
     db.select({ count: count() }).from(urls),
     db.select({ count: count() }).from(clicks),
     db
-      .select({ count: sql<number>`COUNT(DISTINCT ip_hash)` })
+      .select({ count: sql<number>`COUNT(DISTINCT ip_address)` })
       .from(clicks)
-      .where(sql`ip_hash IS NOT NULL`),
+      .where(sql`ip_address IS NOT NULL`),
   ]);
 
   const topUrls = await db
@@ -48,7 +62,12 @@ export async function getAnalyticsOverview(db: DB) {
   };
 }
 
-export async function getAnalyticsDetail(db: DB, urlId: number) {
+export async function getAnalyticsDetail(
+  db: DB,
+  urlId: number,
+  clicksPage = 1,
+  clicksLimit = 10,
+) {
   const [urlRow] = await db
     .select()
     .from(urls)
@@ -56,9 +75,10 @@ export async function getAnalyticsDetail(db: DB, urlId: number) {
     .limit(1);
   if (!urlRow) return null;
 
-  const [uniqueClicksR, recentClicks, clicksByDay] = await Promise.all([
+  const clicksOffset = (clicksPage - 1) * clicksLimit;
+  const [uniqueClicksR, recentClicks, clicksByDay, totalClicksCount] = await Promise.all([
     db
-      .select({ count: sql<number>`COUNT(DISTINCT ip_hash)` })
+      .select({ count: sql<number>`COUNT(DISTINCT ip_address)` })
       .from(clicks)
       .where(eq(clicks.urlId, urlId)),
     db
@@ -66,7 +86,8 @@ export async function getAnalyticsDetail(db: DB, urlId: number) {
       .from(clicks)
       .where(eq(clicks.urlId, urlId))
       .orderBy(desc(clicks.clickedAt))
-      .limit(50),
+      .limit(clicksLimit)
+      .offset(clicksOffset),
     db
       .select({
         day: sql<string>`DATE(clicked_at)`.as("day"),
@@ -78,6 +99,7 @@ export async function getAnalyticsDetail(db: DB, urlId: number) {
       )
       .groupBy(sql`DATE(clicked_at)`)
       .orderBy(sql`DATE(clicked_at) ASC`),
+    db.select({ count: sql<number>`count(*)` }).from(clicks).where(eq(clicks.urlId, urlId)),
   ]);
 
   return {
@@ -85,6 +107,9 @@ export async function getAnalyticsDetail(db: DB, urlId: number) {
     uniqueClicks: Number(uniqueClicksR[0]?.count ?? 0),
     recentClicks,
     clicksByDay,
+    clicksPage,
+    clicksLimit,
+    totalClicks: Number(totalClicksCount[0]?.count ?? 0),
   };
 }
 
@@ -93,15 +118,32 @@ export async function getSettingsData(db: DB) {
   return { settings: rows };
 }
 
-export async function getUsersData(db: DB) {
-  const adminUsers = await db
-    .select({
-      id: admins.id,
-      username: admins.username,
-      role: admins.role,
-      createdAt: admins.createdAt,
-    })
-    .from(admins)
-    .orderBy(admins.createdAt);
-  return adminUsers;
+export async function getUsersData(
+  db: DB,
+  page = 1,
+  limit = 10,
+  search = "",
+  sort = "createdAt:asc",
+) {
+  const offset = (page - 1) * limit;
+  const s = search.trim();
+  const searchCond = s ? like(admins.username, `%${s}%`) : undefined;
+  const [sf, sd] = sort.split(":");
+  const orderCol =
+    sf === "username"
+      ? sd === "asc" ? asc(admins.username) : desc(admins.username)
+      : sf === "role"
+        ? sd === "asc" ? asc(admins.role) : desc(admins.role)
+        : sd === "asc" ? asc(admins.createdAt) : desc(admins.createdAt);
+  const [adminUsers, countResult] = await Promise.all([
+    db
+      .select({ id: admins.id, username: admins.username, role: admins.role, createdAt: admins.createdAt })
+      .from(admins)
+      .where(searchCond)
+      .orderBy(orderCol)
+      .limit(limit)
+      .offset(offset),
+    db.select({ count: sql<number>`count(*)` }).from(admins).where(searchCond),
+  ]);
+  return { users: adminUsers, total: Number(countResult[0]?.count ?? 0), page, limit, search, sort };
 }

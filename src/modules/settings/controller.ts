@@ -1,5 +1,13 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import * as svc from "./service.ts";
+import { logActivity } from "../logs/service.ts";
+
+function getIp(req: FastifyRequest): string {
+  return (
+    ((req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ??
+      req.ip) || ""
+  );
+}
 
 export async function updateSetting(
   app: FastifyInstance,
@@ -19,6 +27,14 @@ export async function updateSetting(
   } else {
     message = `Setting "${row.label}" berhasil diperbarui menjadi: ${row.value}`;
   }
+
+  void logActivity(app.db, {
+    adminId: req.user.id,
+    action: "settings.update",
+    description: `Memperbarui setting "${row.label}" (${key}) = ${row.value}`,
+    metadata: { key, value: row.value },
+    ipAddress: getIp(req),
+  });
 
   return reply
     .status(200)

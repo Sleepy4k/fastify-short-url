@@ -37,10 +37,12 @@ export async function linksPage(
   req: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const q = req.query as { page?: string; limit?: string };
+  const q = req.query as { page?: string; limit?: string; search?: string; sort?: string };
   const page = Math.max(1, Number(q.page ?? 1));
-  const limit = Math.min(100, Math.max(1, Number(q.limit ?? 20)));
-  const data = await svc.getLinksData(app.db, page, limit);
+  const limit = Math.min(100, Math.max(1, Number(q.limit ?? 10)));
+  const search = (q.search ?? "").trim();
+  const sort = q.sort ?? "createdAt:desc";
+  const data = await svc.getLinksData(app.db, page, limit, search, sort);
 
   if (req.headers["hx-request"]) {
     reply.header("Cache-Control", "private, max-age=5");
@@ -82,7 +84,10 @@ export async function analyticsDetailPage(
   reply: FastifyReply,
 ) {
   const urlId = Number(req.params.id);
-  const detail = await svc.getAnalyticsDetail(app.db, urlId);
+  const q = req.query as { clicksPage?: string; clicksLimit?: string };
+  const clicksPage = Math.max(1, Number(q.clicksPage ?? 1));
+  const clicksLimit = Math.min(100, Math.max(1, Number(q.clicksLimit ?? 10)));
+  const detail = await svc.getAnalyticsDetail(app.db, urlId, clicksPage, clicksLimit);
   if (!detail) return reply.status(404).send({ error: "URL not found" });
 
   reply.header("Cache-Control", "private, max-age=5");
@@ -134,8 +139,14 @@ export async function usersPage(
     return reply.redirect("/admin/links");
   }
 
-  const users = await svc.getUsersData(app.db);
-  const data = { users, currentUserId: req.user.id, async: true };
+  const q = req.query as { page?: string; limit?: string; search?: string; sort?: string };
+  const page = Math.max(1, Number(q.page ?? 1));
+  const limit = Math.min(100, Math.max(1, Number(q.limit ?? 10)));
+  const search = (q.search ?? "").trim();
+  const sort = q.sort ?? "createdAt:asc";
+
+  const usersData = await svc.getUsersData(app.db, page, limit, search, sort);
+  const data = { ...usersData, currentUserId: req.user.id };
 
   if (req.headers["hx-request"]) {
     return reply.view("admin/partials/users.ejs", {

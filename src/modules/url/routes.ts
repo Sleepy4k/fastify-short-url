@@ -6,12 +6,25 @@ export default async function urlRoutes(app: FastifyInstance) {
     ctrl.handleRedirect(app, req, reply),
   );
 
+  app.post<{ Params: { code: string }; Body: { password: string } }>(
+    "/:code",
+    (req, reply) => ctrl.handlePasswordRedirect(app, req, reply),
+  );
+
   const auth = { preHandler: [app.authenticate] };
 
   app.get("/admin/urls", auth, (req, reply) => ctrl.listUrls(app, req, reply));
 
   app.post<{
-    Body: { originalUrl: string; customAlias?: string; expiresAt?: string };
+    Body: {
+      originalUrl: string;
+      customAlias?: string;
+      expiresAt?: string;
+      password?: string;
+      title?: string;
+      description?: string;
+      ogImageUrl?: string;
+    };
   }>("/admin/urls", auth, (req, reply) => ctrl.createUrl(app, req, reply));
 
   app.patch<{
@@ -21,8 +34,19 @@ export default async function urlRoutes(app: FastifyInstance) {
       shortcode?: string;
       isActive?: string | boolean;
       expiresAt?: string;
+      password?: string;
+      clearPassword?: string;
+      title?: string;
+      description?: string;
+      ogImageUrl?: string;
     };
   }>("/admin/urls/:id", auth, (req, reply) => ctrl.updateUrl(app, req, reply));
+
+  app.patch<{ Params: { id: string }; Body: { isActive: string } }>(
+    "/admin/urls/:id/toggle",
+    auth,
+    (req, reply) => ctrl.toggleUrl(app, req, reply),
+  );
 
   app.delete<{ Params: { id: string } }>(
     "/admin/urls/:id",

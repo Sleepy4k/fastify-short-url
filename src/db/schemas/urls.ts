@@ -15,11 +15,15 @@ export const urls = mysqlTable(
   "urls",
   {
     id: int("id").primaryKey().autoincrement(),
-    shortcode: varchar("shortcode", { length: 32 }).notNull().unique(),
+    shortcode: varchar("shortcode", { length: 100 }).notNull().unique(),
     originalUrl: text("original_url").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     expiresAt: datetime("expires_at"),
     totalClicks: int("total_clicks").default(0).notNull(),
+    passwordHash: varchar("password_hash", { length: 255 }),
+    title: varchar("title", { length: 255 }),
+    description: text("description"),
+    ogImageUrl: varchar("og_image_url", { length: 512 }),
     createdAt: timestamp("created_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),

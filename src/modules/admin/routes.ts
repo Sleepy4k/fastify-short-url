@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import * as ctrl from "./controller.ts";
+import * as logsCtrl from "../logs/controller.ts";
 
 export default async function adminRoutes(app: FastifyInstance) {
   const auth = { preHandler: [app.authenticate] };
@@ -30,5 +31,9 @@ export default async function adminRoutes(app: FastifyInstance) {
 
   app.get("/admin/users", auth, (req, reply) =>
     ctrl.usersPage(app, req, reply),
+  );
+
+  app.get("/admin/logs", auth, (req, reply) =>
+    logsCtrl.logsPage(app, req, reply),
   );
 }

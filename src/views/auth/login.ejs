@@ -4,10 +4,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — <%= appName %></title>
+  <title>Login - <%= appName %></title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#CC0000" />
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
   <link rel="stylesheet" href="/assets/css/login.css" />
-  <script src="/assets/js/tailwind.cdn.js"></script>
-  <script src="/assets/js/htmx.min.js" defer></script>
+  <script src="/assets/js/vendor/tailwind.cdn.js"></script>
+  <script src="/assets/js/vendor/htmx.min.js" defer></script>
+  <script src="/assets/js/page/login.js" defer></script>
 </head>
 
 <body>
@@ -48,33 +53,6 @@
   </div>
 
   <div id="toast-container" style="position:fixed;top:1rem;right:1rem;z-index:100;display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end;pointer-events:none;"></div>
-
-  <script>
-    function showToast(msg, type) {
-      var c = document.getElementById('toast-container');
-      var el = document.createElement('div');
-      el.textContent = msg;
-      var bgColor = type === 'error' ? '#7f1d1d' : type === 'success' ? '#14532d' : '#1f2937';
-      var borderColor = type === 'error' ? '#dc2626' : type === 'success' ? '#16a34a' : '#4b5563';
-      var textColor = type === 'error' ? '#fca5a5' : type === 'success' ? '#86efac' : '#e5e7eb';
-      el.style.cssText = 'background:' + bgColor + ';border:1px solid ' + borderColor + ';color:' + textColor + ';padding:0.75rem 1rem;border-radius:0.75rem;font-size:0.875rem;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.5);opacity:0;transition:opacity 0.3s;max-width:20rem;';
-      c.appendChild(el);
-      requestAnimationFrame(function() {
-        el.style.opacity = '1';
-      });
-      setTimeout(function() {
-        el.style.opacity = '0';
-        setTimeout(function() {
-          el.remove();
-        }, 300);
-      }, 3500);
-    }
-
-    document.body.addEventListener('showLoginToast', function(evt) {
-      var d = evt.detail;
-      if (d && d.message) showToast(d.message, d.type || 'error');
-    });
-  </script>
 </body>
 
 </html>

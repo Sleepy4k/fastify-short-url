@@ -18,6 +18,7 @@ import settingsRoutes from "./modules/settings/routes.ts";
 import usersRoutes from "./modules/users/routes.ts";
 import adminRoutes from "./modules/admin/routes.ts";
 import profileRoutes from "./modules/profile/routes.ts";
+import seoRoutes from "./modules/seo/routes.ts";
 
 async function buildServer() {
   const app = Fastify({
@@ -31,20 +32,14 @@ async function buildServer() {
     trustProxy: true,
   });
 
-  app.decorate("entryPath", {
-    getter() {
-      let path = import.meta.url
-        ? new URL(import.meta.url).pathname
-        : process.cwd();
-
-      path = path.replace(/\/?[^\/]*$/, "/");
-      const isWindows = process.platform === "win32";
-      if (isWindows && path.startsWith("/")) {
-        path = path.slice(1);
-      }
-      return path;
-    },
-  });
+  let _entryPath = import.meta.url
+    ? new URL(import.meta.url).pathname
+    : process.cwd();
+  _entryPath = _entryPath.replace(/\/?[^/]*$/, "/");
+  if (process.platform === "win32" && _entryPath.startsWith("/")) {
+    _entryPath = _entryPath.slice(1);
+  }
+  app.decorate("entryPath", _entryPath);
 
   await app.register(envPlugin);
 
@@ -65,6 +60,7 @@ async function buildServer() {
   await app.register(usersRoutes);
   await app.register(adminRoutes);
   await app.register(profileRoutes);
+  await app.register(seoRoutes);
 
   app.setErrorHandler(
     async (error: Error & { statusCode?: number }, _req, reply) => {

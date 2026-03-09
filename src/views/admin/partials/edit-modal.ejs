@@ -1,28 +1,9 @@
-<div
-  id="edit-modal"
-  class="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4 backdrop-blur-sm"
-  onclick="if (event.target.id === 'edit-modal') this.remove();"
->
-  <div
-    class="bg-gray-900 rounded-2xl border border-gray-800 p-6 sm:p-8 max-w-lg w-full shadow-2xl"
-    onclick="event.stopPropagation()"
-  >
+<div id="edit-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4 backdrop-blur-sm" onclick="if (event.target.id === 'edit-modal') this.remove();">
+  <div class="bg-gray-900 rounded-2xl border border-gray-800 p-6 sm:p-8 max-w-lg w-full shadow-2xl" onclick="event.stopPropagation()">
     <div class="flex items-center gap-3 mb-6">
-      <div
-        class="inline-flex items-center justify-center w-10 h-10 bg-purple-900/50 rounded-xl flex-shrink-0"
-      >
-        <svg
-          class="w-5 h-5 text-purple-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-          />
+      <div class="inline-flex items-center justify-center w-10 h-10 bg-purple-900/50 rounded-xl flex-shrink-0">
+        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       </div>
       <div>
@@ -31,91 +12,77 @@
           Perbarui shortcode, URL tujuan, atau tanggal kadaluarsa
         </p>
       </div>
-      <button
-        type="button"
-        onclick="document.getElementById('edit-modal').remove()"
-        class="ml-auto text-gray-500 hover:text-gray-300 flex-shrink-0"
-      >
-        <svg
-          class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
+      <button type="button" onclick="document.getElementById('edit-modal').remove()" class="ml-auto text-gray-500 hover:text-gray-300 flex-shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
     </div>
 
     <div id="edit-error" class="mb-4"></div>
 
-    <form
-      hx-patch="/admin/urls/<%= url.id %>"
-      hx-target="#edit-error"
-      hx-swap="innerHTML"
-      hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===200) { document.getElementById('edit-modal').remove(); }"
-      class="space-y-5"
-    >
+    <form hx-patch="/admin/urls/<%= url.id %>" hx-target="#edit-error" hx-swap="innerHTML" hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===200) { document.getElementById('edit-modal').remove(); }" class="space-y-5">
       <div>
-        <label class="block text-sm font-semibold text-gray-300 mb-2"
-          >Shortcode</label
-        >
-        <input
-          name="shortcode"
-          type="text"
-          value="<%= url.shortcode %>"
-          placeholder="custom-alias"
-          class="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-        />
+        <label class="block text-sm font-semibold text-gray-300 mb-2">Shortcode</label>
+        <input name="shortcode" type="text" value="<%= url.shortcode %>" placeholder="custom-alias" class="input-focus w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none transition-all" />
         <p class="text-xs text-gray-500 mt-1">
           Hanya huruf, angka, tanda hubung dan garis bawah.
         </p>
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-gray-300 mb-2"
-          >URL Tujuan</label
-        >
-        <input
-          name="originalUrl"
-          type="url"
-          value="<%= url.originalUrl %>"
-          placeholder="https://example.com"
-          class="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-        />
+        <label class="block text-sm font-semibold text-gray-300 mb-2">URL Tujuan</label>
+        <input name="originalUrl" type="url" value="<%= url.originalUrl %>" placeholder="https://example.com" class="input-focus w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none transition-all" />
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-gray-300 mb-2"
-          >Kadaluarsa
-          <span class="text-gray-500 font-normal">(opsional)</span></label
-        >
-        <input
-          name="expiresAt"
-          type="datetime-local"
-          value="<%= url.expiresAt ? new Date(url.expiresAt).toISOString().slice(0, 16) : '' %>"
-          class="w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-        />
+        <label class="block text-sm font-semibold text-gray-300 mb-2">Kadaluarsa
+          <span class="text-gray-500 font-normal">(opsional)</span></label>
+        <input name="expiresAt" type="datetime-local" value="<%= url.expiresAt ? new Date(url.expiresAt).toISOString().slice(0, 16) : '' %>" class="input-focus w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-3 text-sm focus:outline-none transition-all" />
       </div>
 
+      <!-- Advanced options: SEO + Password -->
+      <details class="group" <%= url.title || url.description || url.ogImageUrl || url.passwordHash ? 'open' : '' %>>
+        <summary class="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-gray-200 cursor-pointer select-none list-none py-1 transition-colors">
+          <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+          Opsi SEO &amp; Password
+        </summary>
+        <div class="mt-3 space-y-4 border-t border-gray-800 pt-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Judul SEO</label>
+            <input name="title" type="text" value="<%= url.title ?? '' %>" placeholder="Judul untuk preview media sosial" maxlength="255" class="input-focus w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm focus:outline-none transition-all placeholder-gray-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Deskripsi SEO</label>
+            <textarea name="description" rows="2" placeholder="Deskripsi singkat untuk preview media sosial" class="input-focus w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm focus:outline-none transition-all placeholder-gray-500 resize-none"><%= url.description ?? '' %></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">URL Gambar OG</label>
+            <input name="ogImageUrl" type="url" value="<%= url.ogImageUrl ?? '' %>" placeholder="https://example.com/image.jpg" class="input-focus w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm focus:outline-none transition-all placeholder-gray-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">
+              Password Baru
+              <span class="text-gray-500 font-normal">(opsional)</span>
+            </label>
+            <input name="password" type="password" placeholder="<%= url.passwordHash ? 'Isi untuk mengganti password' : 'Biarkan kosong jika tidak ingin proteksi' %>" autocomplete="new-password" class="input-focus w-full rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm focus:outline-none transition-all placeholder-gray-500" />
+            <% if (url.passwordHash) { %>
+            <label class="flex items-center gap-2 mt-2 cursor-pointer">
+              <input type="checkbox" name="clearPassword" value="true" class="h-4 w-4 rounded" style="accent-color: #CC0000;" />
+              <span class="text-xs text-gray-400">Hapus password (jadikan tidak terproteksi)</span>
+            </label>
+            <% } %>
+          </div>
+        </div>
+      </details>
+
       <div class="flex gap-3 justify-end pt-4 border-t border-gray-800">
-        <button
-          type="button"
-          onclick="document.getElementById('edit-modal').remove()"
-          class="rounded-xl bg-gray-800 hover:bg-gray-700 px-5 py-2.5 text-sm font-semibold transition-colors"
-        >
+        <button type="button" onclick="document.getElementById('edit-modal').remove()" class="rounded-xl bg-gray-800 hover:bg-gray-700 px-5 py-2.5 text-sm font-semibold transition-colors">
           Batal
         </button>
-        <button
-          type="submit"
-          class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-95"
-          style="background: linear-gradient(135deg, #7c3aed, #6d28d9)"
-        >
+        <button type="submit" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-95" style="background: linear-gradient(135deg, #7c3aed, #6d28d9)">
           Simpan Perubahan
         </button>
       </div>

@@ -1,93 +1,221 @@
 <%- include('create-form.ejs') %>
 
-<section id="url-list" hx-get="/admin/urls" hx-trigger="urlCreated from:body, urlUpdated from:body, urlDeleted from:body" hx-select="#url-list" hx-swap="outerHTML" hx-target="#url-list">
-  <div class="rounded-xl border border-gray-800 overflow-hidden shadow-lg table-responsive">
-    <table class="w-full text-sm min-w-[640px]">
-      <thead class="bg-gray-900 text-gray-300 uppercase text-xs font-semibold">
-        <tr>
-          <th class="px-4 py-3 text-left">Shortcode</th>
-          <th class="px-4 py-3 text-left hide-sm">URL Tujuan</th>
-          <th class="px-4 py-3 text-center">Klik</th>
-          <th class="px-4 py-3 text-center">Aktif</th>
-          <th class="px-4 py-3 text-center hide-sm">Expired</th>
-          <th class="px-4 py-3 text-center">Aksi</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-800 bg-gray-950">
-        <% for (const url of urls) { %>
-        <tr class="hover:bg-gray-900/50 transition-colors">
-          <td class="px-4 py-3 font-mono font-semibold text-red-400">
-            <a href="<%= baseUrl %>/<%= url.shortcode %>" target="_blank" rel="noopener" class="hover:underline">
-              /<%= url.shortcode %>
-            </a>
-          </td>
-          <td class="px-4 py-3 max-w-[200px] truncate text-gray-400 text-xs hide-sm" title="<%= url.originalUrl %>">
-            <%= url.originalUrl.substring(0, 50) %><% if (url.originalUrl.length > 50) { %>…<% } %>
-          </td>
-          <td class="px-4 py-3 text-center font-bold text-green-400"><%= url.totalClicks %></td>
-          <td class="px-4 py-3 text-center">
-            <input type="checkbox" id="active-<%= url.id %>" <%= url.isActive ? 'checked' : '' %> class="h-4 w-4 cursor-pointer rounded" style="accent-color: #CC0000;" onchange="toggleUrlActive(<%= url.id %>, this.checked)" />
-          </td>
-          <td class="px-4 py-3 text-center text-xs text-gray-400 hide-sm">
-            <%= url.expiresAt ? new Date(url.expiresAt).toLocaleDateString('id-ID') : '—' %>
-          </td>
-          <td class="px-4 py-3 text-center">
-            <div class="flex items-center justify-center gap-1 flex-wrap">
-              <button hx-get="/admin/urls/<%= url.id %>/edit" hx-target="#modal-container" hx-swap="innerHTML" hx-select="#edit-modal" class="text-xs px-2.5 py-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-700 hover:border-gray-500 transition-all">
-                Edit
-              </button>
-              <button hx-get="/admin/urls/<%= url.id %>/qr" hx-target="#modal-container" hx-swap="innerHTML" hx-select="#qr-modal" class="text-xs px-2.5 py-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-700 hover:border-gray-500 transition-all">
-                QR
-              </button>
-              <button hx-get="/admin/analytics/<%= url.id %>" hx-target="#panel" hx-swap="innerHTML" hx-push-url="/admin/analytics/<%= url.id %>" hx-select="#analytics-detail" onclick="activateTab('analytics')" class="text-xs px-2.5 py-1.5 rounded-lg text-blue-400 hover:text-white hover:bg-blue-900/30 border border-blue-900/50 hover:border-blue-700 transition-all">
-                Stat
-              </button>
-              <span id="del-url-<%= url.id %>" hx-delete="/admin/urls/<%= url.id %>" hx-trigger="confirmed" hx-swap="none" class="hidden"></span>
-              <button onclick="confirmDeleteUrl(<%= url.id %>, '<%= url.shortcode %>')" class="text-xs px-2.5 py-1.5 rounded-lg text-red-400 hover:text-white hover:bg-red-900/30 border border-red-900/50 hover:border-red-700 transition-all">
-                Hapus
-              </button>
-            </div>
-          </td>
-        </tr>
-        <% } %>
-        <% if (!urls.length) { %>
-        <tr>
-          <td colspan="6" class="px-6 py-16 text-center text-gray-500 text-sm">
-            Belum ada shortlink. Buat yang pertama di atas!
-          </td>
-        </tr>
-        <% } %>
-      </tbody>
-    </table>
+<%
+const _fp = `search=${encodeURIComponent(search)}&sort=${sort}&limit=${limit}`;
+const _totalPages = Math.ceil(total / limit);
+let _startPage = Math.max(1, page - 2);
+let _endPage = Math.min(_totalPages, _startPage + 4);
+if (_endPage - _startPage < 4) _startPage = Math.max(1, _endPage - 4);
+%>
+
+<section id="url-list" hx-get="/admin/urls?page=1&<%= _fp %>" hx-trigger="urlCreated from:body, urlUpdated from:body, urlDeleted from:body" hx-select="#url-list" hx-swap="outerHTML" hx-target="#url-list" class="space-y-4">
+  <form id="url-filter-form" hx-get="/admin/urls" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" hx-push-url="true" class="flex flex-col sm:flex-row gap-2">
+    <div class="relative flex-1">
+      <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+      <input type="search" name="search" value="<%= search %>" placeholder="Cari shortcode atau URL tujuan..." class="input-focus w-full rounded-xl bg-gray-800 border border-gray-700 pl-9 pr-4 py-2.5 text-sm focus:outline-none transition-all placeholder-gray-500 text-gray-100" />
+    </div>
+    <input type="hidden" name="sort" value="<%= sort %>" id="url-sort-input" />
+    <input type="hidden" name="page" value="1" id="url-page-input" />
+    <div class="flex gap-2 flex-shrink-0">
+      <div class="relative">
+        <select name="limit" class="appearance-none rounded-xl bg-gray-800 border border-gray-700 px-3 pr-8 py-2.5 text-sm text-gray-300 focus:outline-none cursor-pointer hover:bg-gray-700 transition-colors" onchange="submitUrlFilterForm()">
+          <% for (const n of [10, 20, 50, 100]) { %>
+          <option value="<%= n %>" <%= limit === n ? 'selected' : '' %>><%= n %> / hal</option>
+          <% } %>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+          <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+      <button type="submit" class="flex items-center gap-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white transition-colors flex-shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        Cari
+      </button>
+    </div>
+  </form>
+
+  <!-- Results summary -->
+  <div class="flex items-center justify-between text-xs text-gray-500">
+    <span>
+      <% if (total === 0) { %>
+      Tidak ada shortlink<% if (search) { %> untuk "<strong class="text-gray-400"><%= search %></strong>"<% } %>
+      <% } else { %>
+      Menampilkan <strong class="text-gray-300"><%= (page - 1) * limit + 1 %>–<%= Math.min(page * limit, total) %></strong> dari <strong class="text-gray-300"><%= total %></strong> shortlink<% if (search) { %> untuk "<strong class="text-gray-400"><%= search %></strong>"<% } %>
+      <% } %>
+    </span>
+    <% if (search) { %>
+    <button hx-get="/admin/urls?page=1&sort=<%= sort %>&limit=<%= limit %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" hx-push-url="true" class="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1 transition-colors">
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+      Hapus filter
+    </button>
+    <% } %>
   </div>
 
-  <% const totalPages = Math.ceil(total / limit); %>
-  <% if (totalPages > 1) { %>
-  <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400">
-    <span>Menampilkan <%= (page - 1) * limit + 1 %>-<%= Math.min(page * limit, total) %> dari <%= total %> shortlink</span>
-    <div class="flex gap-2">
+  <div class="rounded-xl border border-gray-800 shadow-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm min-w-[720px]">
+        <thead class="bg-gray-900 text-gray-400 uppercase text-xs font-semibold">
+          <tr>
+            <th class="px-4 py-3 text-left">
+              <button type="button" onclick="setUrlSort('shortcode')" class="flex items-center gap-0.5 hover:text-gray-200 transition-colors group">
+                Shortcode <span class="sort-icon" data-field="shortcode"></span>
+              </button>
+            </th>
+            <th class="px-4 py-3 text-left hide-sm">URL Tujuan</th>
+            <th class="px-4 py-3 text-center">
+              <button type="button" onclick="setUrlSort('clicks')" class="flex items-center justify-center gap-0.5 mx-auto hover:text-gray-200 transition-colors">
+                Klik <span class="sort-icon" data-field="clicks"></span>
+              </button>
+            </th>
+            <th class="px-4 py-3 text-center">Aktif</th>
+            <th class="px-4 py-3 text-center hide-sm">
+              <button type="button" onclick="setUrlSort('expiresAt')" class="flex items-center justify-center gap-0.5 mx-auto hover:text-gray-200 transition-colors">
+                Expired <span class="sort-icon" data-field="expiresAt"></span>
+              </button>
+            </th>
+            <th class="px-4 py-3 text-center hide-sm">
+              <button type="button" onclick="setUrlSort('createdAt')" class="flex items-center justify-center gap-0.5 mx-auto hover:text-gray-200 transition-colors">
+                Dibuat <span class="sort-icon" data-field="createdAt"></span>
+              </button>
+            </th>
+            <th class="px-4 py-3 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-800 bg-gray-950">
+          <% for (const url of urls) { %>
+          <tr class="hover:bg-gray-900/50 transition-colors">
+            <td class="px-4 py-3 font-mono font-semibold text-red-400">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <a href="<%= baseUrl %>/<%= url.shortcode %>" target="_blank" rel="noopener" class="hover:underline">/<%= url.shortcode %></a>
+                <% if (url.passwordHash) { %>
+                <span title="Password terproteksi" class="inline-flex items-center justify-center w-4 h-4 text-yellow-400">
+                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </span>
+                <% } %>
+                <% if (url.title) { %>
+                <span title="SEO: <%= url.title %>" class="inline-flex items-center justify-center w-4 h-4 text-blue-400">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </span>
+                <% } %>
+              </div>
+            </td>
+            <td class="px-4 py-3 max-w-[200px] truncate text-gray-400 text-xs hide-sm" title="<%= url.originalUrl %>">
+              <%= url.originalUrl.substring(0, 50) %><% if (url.originalUrl.length > 50) { %>…<% } %>
+            </td>
+            <td class="px-4 py-3 text-center font-bold text-green-400"><%= url.totalClicks %></td>
+            <td class="px-4 py-3 text-center">
+              <input type="checkbox" id="active-<%= url.id %>" <%= url.isActive ? 'checked' : '' %> class="h-4 w-4 cursor-pointer rounded" style="accent-color: #CC0000;" onchange="toggleUrlActive(<%= url.id %>, this.checked, this)" />
+            </td>
+            <td class="px-4 py-3 text-center text-xs text-gray-400 hide-sm">
+              <%= url.expiresAt ? new Date(url.expiresAt).toLocaleDateString('id-ID') : '—' %>
+            </td>
+            <td class="px-4 py-3 text-center text-xs text-gray-500 hide-sm">
+              <%= new Date(url.createdAt).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) %>
+            </td>
+            <td class="px-4 py-3 text-center">
+              <div class="flex items-center justify-center gap-1 flex-wrap">
+                <button onclick="copyShortUrl('<%= baseUrl %>/<%= url.shortcode %>')" class="text-xs px-2.5 py-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-700 hover:border-gray-500 transition-all" title="Salin URL">
+                  Copy
+                </button>
+                <button hx-get="/admin/urls/<%= url.id %>/edit" hx-target="#modal-container" hx-swap="innerHTML" hx-select="#edit-modal" class="text-xs px-2.5 py-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-700 hover:border-gray-500 transition-all">
+                  Edit
+                </button>
+                <button hx-get="/admin/urls/<%= url.id %>/qr" hx-target="#modal-container" hx-swap="innerHTML" hx-select="#qr-modal" class="text-xs px-2.5 py-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-700 hover:border-gray-500 transition-all">
+                  QR
+                </button>
+                <button hx-get="/admin/analytics/<%= url.id %>" hx-target="#panel" hx-swap="innerHTML" hx-push-url="/admin/analytics/<%= url.id %>" hx-select="#analytics-detail" onclick="activateTab('analytics')" class="text-xs px-2.5 py-1.5 rounded-lg text-blue-400 hover:text-white hover:bg-blue-900/30 border border-blue-900/50 hover:border-blue-700 transition-all">
+                  Stat
+                </button>
+                <span id="del-url-<%= url.id %>" hx-delete="/admin/urls/<%= url.id %>" hx-trigger="confirmed" hx-swap="none" class="hidden"></span>
+                <button onclick="confirmDeleteUrl(<%= url.id %>, '<%= url.shortcode %>')" class="text-xs px-2.5 py-1.5 rounded-lg text-red-400 hover:text-white hover:bg-red-900/30 border border-red-900/50 hover:border-red-700 transition-all">
+                  Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+          <% } %>
+          <% if (!urls.length) { %>
+          <tr>
+            <td colspan="7" class="px-6 py-16 text-center text-gray-500 text-sm">
+              <% if (search) { %>
+              Tidak ada shortlink yang cocok dengan "<%= search %>".
+              <% } else { %>
+              Belum ada shortlink. Buat yang pertama di atas!
+              <% } %>
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <% if (_totalPages > 1) { %>
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+    <span class="text-xs text-gray-500">Halaman <strong class="text-gray-300"><%= page %></strong> dari <strong class="text-gray-300"><%= _totalPages %></strong></span>
+    <div class="flex items-center gap-1">
       <% if (page > 1) { %>
-      <button hx-get="/admin/urls?page=<%= page - 1 %>&limit=<%= limit %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" class="rounded-lg bg-gray-800 hover:bg-gray-700 px-4 py-2 transition-colors text-xs font-medium">
-        &larr; Sebelumnya
+      <button hx-get="/admin/urls?page=<%= page - 1 %>&<%= _fp %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" hx-push-url="true" class="flex items-center gap-1 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2 text-xs font-medium text-gray-300 hover:text-white transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Prev
+      </button>
+      <% } else { %>
+      <span class="flex items-center gap-1 rounded-lg bg-gray-900 border border-gray-800 px-3 py-2 text-xs text-gray-600 cursor-not-allowed">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Prev
+      </span>
+      <% } %>
+
+      <% if (_startPage > 1) { %>
+      <button hx-get="/admin/urls?page=1&<%= _fp %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 w-9 py-2 text-xs font-medium text-gray-300 hover:text-white transition-colors text-center">1</button>
+      <% if (_startPage > 2) { %><span class="text-gray-600 px-1 text-xs">…</span><% } %>
+      <% } %>
+
+      <% for (let p = _startPage; p <= _endPage; p++) { %>
+      <button hx-get="/admin/urls?page=<%= p %>&<%= _fp %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg border w-9 py-2 text-xs font-medium transition-colors text-center <%= p === page ? 'bg-red-700 border-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700 border-gray-700 text-gray-300 hover:text-white' %>">
+        <%= p %>
       </button>
       <% } %>
-      <% if (page < totalPages) { %>
-      <button hx-get="/admin/urls?page=<%= page + 1 %>&limit=<%= limit %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" class="rounded-lg bg-gray-800 hover:bg-gray-700 px-4 py-2 transition-colors text-xs font-medium">
-        Berikutnya &rarr;
+
+      <% if (_endPage < _totalPages) { %>
+      <% if (_endPage < _totalPages - 1) { %><span class="text-gray-600 px-1 text-xs">…</span><% } %>
+      <button hx-get="/admin/urls?page=<%= _totalPages %>&<%= _fp %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 w-9 py-2 text-xs font-medium text-gray-300 hover:text-white transition-colors text-center"><%= _totalPages %></button>
+      <% } %>
+
+      <% if (page < _totalPages) { %>
+      <button hx-get="/admin/urls?page=<%= page + 1 %>&<%= _fp %>" hx-target="#url-list" hx-select="#url-list" hx-swap="outerHTML" hx-push-url="true" class="flex items-center gap-1 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2 text-xs font-medium text-gray-300 hover:text-white transition-colors">
+        Next
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
       </button>
+      <% } else { %>
+      <span class="flex items-center gap-1 rounded-lg bg-gray-900 border border-gray-800 px-3 py-2 text-xs text-gray-600 cursor-not-allowed">
+        Next
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </span>
       <% } %>
     </div>
   </div>
   <% } %>
 </section>
-
-<script>
-  function toggleUrlActive(id, isActive) {
-    htmx.ajax('PATCH', '/admin/urls/' + id, {
-      swap: 'none',
-      values: {
-        isActive: String(isActive)
-      }
-    });
-  }
-</script>

@@ -8,6 +8,10 @@ export default fp(
     await app.register(fastifyStatic, {
       root: path.join(app.entryPath, "public"),
       prefix: "/assets/",
+      maxAge: app.config.NODE_ENV === "production" ? 604800000 : 0, // 7d in prod
+      etag: true,
+      lastModified: true,
+      immutable: false,
     });
   },
   { name: "static-plugin" },

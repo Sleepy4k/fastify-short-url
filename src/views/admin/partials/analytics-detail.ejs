@@ -1,3 +1,9 @@
+<%
+const _ctotalPages = Math.ceil(totalClicks / clicksLimit);
+let _cstartPage = Math.max(1, clicksPage - 2);
+let _cendPage = Math.min(_ctotalPages, _cstartPage + 4);
+if (_cendPage - _cstartPage < 4) _cstartPage = Math.max(1, _cendPage - 4);
+%>
 <div id="analytics-detail" class="space-y-5">
   <div>
     <button hx-get="/admin/analytics" hx-target="#panel" hx-swap="innerHTML" hx-push-url="/admin/analytics" class="inline-flex items-center gap-2 text-sm font-semibold text-red-400 hover:text-red-300 px-3 py-2 rounded-xl hover:bg-red-900/20 transition-all" type="button">
@@ -80,40 +86,98 @@
   </div>
   <% } %>
 
-  <div class="rounded-xl border border-gray-800 overflow-hidden">
-    <div class="bg-gray-900 px-4 sm:px-5 py-3 border-b border-gray-800">
-      <h3 class="text-sm font-bold text-gray-100">50 Klik Terbaru</h3>
+  <div class="rounded-xl border border-gray-800 overflow-hidden"> border-gray-800 flex items-center justify-between gap-3">
+      <h3 class="text-sm font-bold text-gray-100">Riwayat Klik</h3>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-gray-500">Total <strong class="text-gray-300"><%= totalClicks %></strong> klik</span>
+        <div class="relative">
+          <select id="clicks-limit-select" class="appearance-none rounded-lg bg-gray-800 border border-gray-700 px-2.5 pr-7 py-1.5 text-xs text-gray-300 focus:outline-none cursor-pointer hover:bg-gray-700 transition-colors" onchange="changeClicksLimit(this.value, <%= url.id %>)">
+            <% for (const n of [10, 20, 50]) { %>
+            <option value="<%= n %>" <%= clicksLimit === n ? 'selected' : '' %>><%= n %> / hal</option>
+            <% } %>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-1.5 flex items-center">
+            <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="table-responsive">
-      <table class="w-full text-xs min-w-[480px]">
+    <div class="overflow-x-auto">
+      <table id="clicks-table" class="w-full text-xs min-w-[640px]">
         <thead class="bg-gray-900/80 text-gray-400 uppercase font-semibold">
           <tr>
             <th class="px-4 py-2.5 text-left">Waktu</th>
-            <th class="px-4 py-2.5 text-left">IP (hash)</th>
-            <th class="px-4 py-2.5 text-left hide-sm">User-Agent</th>
+            <th class="px-4 py-2.5 text-left">IP</th>
+            <th class="px-4 py-2.5 text-left">Perangkat</th>
+            <th class="px-4 py-2.5 text-left">Browser</th>
+            <th class="px-4 py-2.5 text-left hide-sm">OS</th>
             <th class="px-4 py-2.5 text-left hide-sm">Referer</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-800 bg-gray-950">
           <% for (const click of recentClicks) { %>
-          <tr class="hover:bg-gray-900/50 transition-colors">
+          <tr class="hover:bg-gray-900/50 transition-colors" data-ua="<%= encodeURIComponent(click.userAgent || '') %>">
             <td class="px-4 py-2.5 text-gray-400 whitespace-nowrap">
               <%= new Date(click.clickedAt).toLocaleString('id-ID') %>
             </td>
-            <td class="px-4 py-2.5 font-mono text-gray-500 max-w-[100px] truncate">
-              <%= click.ipHash ? click.ipHash.slice(0, 12) + '…' : '—' %>
+            <td class="px-4 py-2.5 font-mono text-gray-400 max-w-[120px] truncate" title="<%= click.ipAddress || '' %>">
+              <%= click.ipAddress || '—' %>
             </td>
-            <td class="px-4 py-2.5 text-gray-400 max-w-[180px] truncate hide-sm"><%= click.userAgent || '—' %></td>
-            <td class="px-4 py-2.5 text-gray-400 max-w-[160px] truncate hide-sm"><%= click.referer || '—' %></td>
+            <td class="px-4 py-2.5 text-gray-400 ua-device">—</td>
+            <td class="px-4 py-2.5 text-gray-400 ua-browser">—</td>
+            <td class="px-4 py-2.5 text-gray-400 ua-os hide-sm">—</td>
+            <td class="px-4 py-2.5 text-gray-400 max-w-[140px] truncate hide-sm" title="<%= click.referer || '' %>"><%= click.referer || '—' %></td>
           </tr>
           <% } %>
           <% if (!recentClicks.length) { %>
           <tr>
-            <td colspan="4" class="px-4 py-10 text-center text-gray-500">Belum ada klik yang tercatat.</td>
+            <td colspan="6" class="px-4 py-10 text-center text-gray-500">Belum ada klik yang tercatat.</td>
           </tr>
           <% } %>
         </tbody>
       </table>
     </div>
+
+    <!-- Clicks pagination -->
+    <% if (_ctotalPages > 1) { %>
+    <div class="px-4 py-3 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span class="text-xs text-gray-500">Halaman <strong class="text-gray-300"><%= clicksPage %></strong> dari <strong class="text-gray-300"><%= _ctotalPages %></strong></span>
+      <div class="flex items-center gap-1">
+        <% if (clicksPage > 1) { %>
+        <button hx-get="/admin/analytics/<%= url.id %>?clicksPage=<%= clicksPage - 1 %>&clicksLimit=<%= clicksLimit %>" hx-target="#panel" hx-swap="innerHTML" hx-select="#analytics-detail" class="flex items-center gap-1 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg> Prev
+        </button>
+        <% } %>
+
+        <% if (_cstartPage > 1) { %>
+        <button hx-get="/admin/analytics/<%= url.id %>?clicksPage=1&clicksLimit=<%= clicksLimit %>" hx-target="#panel" hx-swap="innerHTML" hx-select="#analytics-detail" class="rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 w-8 py-1.5 text-xs font-medium text-gray-300 text-center">1</button>
+        <% if (_cstartPage > 2) { %><span class="text-gray-600 px-1 text-xs">…</span><% } %>
+        <% } %>
+
+        <% for (let p = _cstartPage; p <= _cendPage; p++) { %>
+        <button hx-get="/admin/analytics/<%= url.id %>?clicksPage=<%= p %>&clicksLimit=<%= clicksLimit %>" hx-target="#panel" hx-swap="innerHTML" hx-select="#analytics-detail" class="rounded-lg border w-8 py-1.5 text-xs font-medium transition-colors text-center <%= p === clicksPage ? 'bg-red-700 border-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700 border-gray-700 text-gray-300 hover:text-white' %>">
+          <%= p %>
+        </button>
+        <% } %>
+
+        <% if (_cendPage < _ctotalPages) { %>
+        <% if (_cendPage < _ctotalPages - 1) { %><span class="text-gray-600 px-1 text-xs">…</span><% } %>
+        <button hx-get="/admin/analytics/<%= url.id %>?clicksPage=<%= _ctotalPages %>&clicksLimit=<%= clicksLimit %>" hx-target="#panel" hx-swap="innerHTML" hx-select="#analytics-detail" class="rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 w-8 py-1.5 text-xs font-medium text-gray-300 text-center"><%= _ctotalPages %></button>
+        <% } %>
+
+        <% if (clicksPage < _ctotalPages) { %>
+        <button hx-get="/admin/analytics/<%= url.id %>?clicksPage=<%= clicksPage + 1 %>&clicksLimit=<%= clicksLimit %>" hx-target="#panel" hx-swap="innerHTML" hx-select="#analytics-detail" class="flex items-center gap-1 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-white transition-colors">
+          Next <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
   </div>
 </div>

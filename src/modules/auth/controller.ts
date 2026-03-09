@@ -1,5 +1,13 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import * as svc from "./service.ts";
+import { logActivity } from "../logs/service.ts";
+
+function getIp(req: FastifyRequest): string {
+  return (
+    ((req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ??
+      req.ip) || ""
+  );
+}
 
 export async function loginPage(
   _app: FastifyInstance,
@@ -55,6 +63,14 @@ export async function handleLogin(
     maxAge: 60 * 60 * 8,
   });
 
+  void logActivity(app.db, {
+    adminId: admin.id,
+    action: "login",
+    description: `Login berhasil: ${admin.username}`,
+    metadata: { username: admin.username, role: admin.role },
+    ipAddress: getIp(req),
+  });
+
   if (req.headers["hx-request"]) {
     return reply.header("HX-Redirect", "/").status(200).send();
   }
@@ -63,9 +79,21 @@ export async function handleLogin(
 
 export async function handleLogout(
   _app: FastifyInstance,
-  _req: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
+  try {
+    await req.jwtVerify({ onlyCookie: true });
+    void logActivity(_app.db, {
+      adminId: req.user?.id,
+      action: "logout",
+      description: `Logout: ${req.user?.username ?? "unknown"}`,
+      metadata: { username: req.user?.username },
+      ipAddress: getIp(req),
+    });
+  } catch {
+    // not authenticated, just clear cookie
+  }
   reply.clearCookie("token", { path: "/" });
   return reply.redirect("/login");
 }

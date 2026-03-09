@@ -1,5 +1,13 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import * as svc from "./service.ts";
+import { logActivity } from "../logs/service.ts";
+
+function getIp(req: FastifyRequest): string {
+  return (
+    ((req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ??
+      req.ip) || ""
+  );
+}
 
 export async function createUser(
   app: FastifyInstance,
@@ -14,6 +22,13 @@ export async function createUser(
 
   try {
     await svc.createUser(app.db, username, password);
+    void logActivity(app.db, {
+      adminId: req.user.id,
+      action: "user.create",
+      description: `Membuat pengguna admin: ${username}`,
+      metadata: { username },
+      ipAddress: getIp(req),
+    });
     return reply
       .status(201)
       .header(
@@ -57,6 +72,13 @@ export async function deleteUser(
 
   try {
     const username = await svc.deleteUser(app.db, id, req.user.id);
+    void logActivity(app.db, {
+      adminId: req.user.id,
+      action: "user.delete",
+      description: `Menghapus pengguna admin: ${username ?? `#${id}`}`,
+      metadata: { id, username },
+      ipAddress: getIp(req),
+    });
     return reply
       .status(200)
       .header(

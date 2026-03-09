@@ -3,12 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      <%= typeof title !== 'undefined' ? title + ' — ' : '' %><%= appName %>
-    </title>
+    <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %><%= appName %></title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#CC0000" />
+    <meta name="description" content="<%= typeof description !== 'undefined' && description ? description : appName + ' — Layanan pemendek URL cepat dan andal.' %>" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="<%= appName %>" />
+    <meta property="og:title" content="<%= typeof title !== 'undefined' && title ? title + ' - ' + appName : appName %>" />
+    <meta property="og:description" content="<%= typeof description !== 'undefined' && description ? description : appName + ' — Layanan pemendek URL cepat dan andal.' %>" />
+    <meta property="og:url" content="<%= typeof canonicalUrl !== 'undefined' && canonicalUrl ? canonicalUrl : baseUrl %>" />
+    <meta property="og:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : baseUrl + '/assets/images/logo.png' %>" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="<%= typeof title !== 'undefined' && title ? title + ' - ' + appName : appName %>" />
+    <meta name="twitter:description" content="<%= typeof description !== 'undefined' && description ? description : appName + ' — Layanan pemendek URL cepat dan andal.' %>" />
+    <meta name="twitter:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : baseUrl + '/assets/images/logo.png' %>" />
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+    <link rel="apple-touch-icon" href="/assets/images/logo.png" />
     <link rel="stylesheet" href="/assets/css/app.css" />
-    <script src="/assets/js/tailwind.cdn.js"></script>
-    <script src="/assets/js/htmx.min.js" defer></script>
+    <script src="/assets/js/vendor/tailwind.cdn.js"></script>
+    <script src="/assets/js/vendor/htmx.min.js" defer></script>
   </head>
 
   <body class="h-full text-gray-100 antialiased">

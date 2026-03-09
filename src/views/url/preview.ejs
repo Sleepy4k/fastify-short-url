@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= url && url.title ? url.title + ' - ' : '' %><%= appName %></title>
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+  <link rel="canonical" href="<%= shortUrl %>" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="<%= appName %>" />
+  <meta property="og:url" content="<%= shortUrl %>" />
+  <% if (url && url.title) { %>
+  <meta property="og:title" content="<%= url.title %>" />
+  <meta name="twitter:title" content="<%= url.title %>" />
+  <% } %>
+  <% if (url && url.description) { %>
+  <meta property="og:description" content="<%= url.description %>" />
+  <meta name="description" content="<%= url.description %>" />
+  <meta name="twitter:description" content="<%= url.description %>" />
+  <% } %>
+  <% if (url && url.ogImageUrl) { %>
+  <meta property="og:image" content="<%= url.ogImageUrl %>" />
+  <meta name="twitter:image" content="<%= url.ogImageUrl %>" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <% } else { %>
+  <meta name="twitter:card" content="summary" />
+  <% } %>
+
+  <meta http-equiv="refresh" content="0;url=<%= targetUrl %>" />
+</head>
+
+<body>
+  <script>
+    window.location.replace(<%- JSON.stringify(targetUrl) %>);
+  </script>
+  <noscript>
+    <p>Redirecting... <a href="<%= targetUrl %>">Click here</a> if not redirected.</p>
+  </noscript>
+</body>
+
+</html>

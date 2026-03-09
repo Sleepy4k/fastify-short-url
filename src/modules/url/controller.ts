@@ -1,5 +1,15 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { eq } from "drizzle-orm";
 import * as svc from "./service.ts";
+import { logActivity } from "../logs/service.ts";
+import { urls as urlsTable } from "../../db/schema.ts";
+
+function getIp(req: FastifyRequest): string {
+  return (
+    ((req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ??
+      req.ip) || ""
+  );
+}
 
 export async function handleRedirect(
   app: FastifyInstance,
@@ -7,20 +17,95 @@ export async function handleRedirect(
   reply: FastifyReply,
 ) {
   const { code } = req.params;
-  const result = await svc.resolveRedirect(app.db, app.redis, code);
+  const ua = (req.headers["user-agent"] || "").toLowerCase();
+  const isBot = svc.isSocialBot(ua);
+
+  const result = await svc.resolveRedirect(
+    app.db,
+    app.redis,
+    code,
+    isBot, // skip cache for bots so we get urlData with SEO info
+  );
 
   if (result.status === "active") {
     setImmediate(() => void svc.recordClick(app.db, code, req));
+
+    // Serve OG preview page to social media crawlers if SEO metadata exists
+    const urlData = result.urlData;
+    if (
+      isBot &&
+      urlData &&
+      (urlData.title || urlData.description || urlData.ogImageUrl)
+    ) {
+      return reply.view("url/preview.ejs", {
+        url: urlData,
+        targetUrl: result.url,
+        shortUrl: `${app.config.BASE_URL}/${code}`,
+        layout: false,
+      });
+    }
+
     return reply
       .status(301)
       .header("Cache-Control", "public, max-age=3600")
       .header("ETag", code)
       .redirect(result.url);
   }
+
+  if (result.status === "password_required") {
+    return reply.view("url/password.ejs", {
+      code,
+      error: null,
+      url: result.urlData,
+      baseUrl: app.config.BASE_URL,
+      layout: false,
+    });
+  }
+
   if (result.status === "expired") {
     return reply.status(410).view("errors/expired.ejs", { layout: false });
   }
   return reply.status(404).view("errors/404.ejs", { layout: false });
+}
+
+export async function handlePasswordRedirect(
+  app: FastifyInstance,
+  req: FastifyRequest<{ Params: { code: string }; Body: { password: string } }>,
+  reply: FastifyReply,
+) {
+  const { code } = req.params;
+  const { password } = req.body;
+
+  const [row] = await app.db
+    .select()
+    .from(urlsTable)
+    .where(eq(urlsTable.shortcode, code))
+    .limit(1);
+
+  if (!row || !row.isActive) {
+    return reply.status(404).view("errors/404.ejs", { layout: false });
+  }
+  if (row.expiresAt && row.expiresAt < new Date()) {
+    return reply.status(410).view("errors/expired.ejs", { layout: false });
+  }
+  if (!row.passwordHash) {
+    setImmediate(() => void svc.recordClick(app.db, code, req));
+    return reply.status(302).redirect(row.originalUrl);
+  }
+
+  const valid = await svc.verifyUrlPassword(row.passwordHash, password ?? "");
+  if (!valid) {
+    return reply.view("url/password.ejs", {
+      code,
+      error: "Password salah. Silakan coba lagi.",
+      url: row,
+      baseUrl: app.config.BASE_URL,
+      layout: false,
+    });
+  }
+
+  setImmediate(() => void svc.recordClick(app.db, code, req));
+  return reply.status(302).redirect(row.originalUrl);
 }
 
 export async function listUrls(
@@ -28,10 +113,12 @@ export async function listUrls(
   req: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const q = req.query as { page?: string; limit?: string };
+  const q = req.query as { page?: string; limit?: string; search?: string; sort?: string };
   const page = Math.max(1, Number(q.page ?? 1));
-  const limit = Math.min(100, Math.max(1, Number(q.limit ?? 20)));
-  const data = await svc.getUrlsPaginated(app.db, page, limit);
+  const limit = Math.min(100, Math.max(1, Number(q.limit ?? 10)));
+  const search = (q.search ?? "").trim();
+  const sort = q.sort ?? "createdAt:desc";
+  const data = await svc.getUrlsPaginated(app.db, page, limit, search, sort);
   reply.header("Cache-Control", "private, max-age=5");
   return reply.view("admin/partials/url-table.ejs", {
     ...data,
@@ -45,12 +132,27 @@ export async function listUrls(
 export async function createUrl(
   app: FastifyInstance,
   req: FastifyRequest<{
-    Body: { originalUrl: string; customAlias?: string; expiresAt?: string };
+    Body: {
+      originalUrl: string;
+      customAlias?: string;
+      expiresAt?: string;
+      password?: string;
+      title?: string;
+      description?: string;
+      ogImageUrl?: string;
+    };
   }>,
   reply: FastifyReply,
 ) {
   try {
     const shortcode = await svc.createUrl(app.db, req.body);
+    void logActivity(app.db, {
+      adminId: req.user.id,
+      action: "url.create",
+      description: `Membuat shortlink /${shortcode} → ${req.body.originalUrl.substring(0, 80)}`,
+      metadata: { shortcode, originalUrl: req.body.originalUrl },
+      ipAddress: getIp(req),
+    });
     return reply
       .status(201)
       .header(
@@ -88,6 +190,11 @@ export async function updateUrl(
       shortcode?: string;
       isActive?: string | boolean;
       expiresAt?: string;
+      password?: string;
+      clearPassword?: string;
+      title?: string;
+      description?: string;
+      ogImageUrl?: string;
     };
   }>,
   reply: FastifyReply,
@@ -95,6 +202,13 @@ export async function updateUrl(
   const id = Number(req.params.id);
   try {
     await svc.updateUrl(app.db, app.redis, id, req.body);
+    void logActivity(app.db, {
+      adminId: req.user.id,
+      action: "url.update",
+      description: `Memperbarui shortlink #${id}${req.body.shortcode ? ` (/${req.body.shortcode})` : ""}`,
+      metadata: { id },
+      ipAddress: getIp(req),
+    });
     return reply
       .status(200)
       .header(
@@ -123,6 +237,36 @@ export async function updateUrl(
   }
 }
 
+export async function toggleUrl(
+  app: FastifyInstance,
+  req: FastifyRequest<{ Params: { id: string }; Body: { isActive: string } }>,
+  reply: FastifyReply,
+) {
+  const id = Number(req.params.id);
+  const isActive = req.body.isActive === "true";
+  const shortcode = await svc.toggleUrlActive(app.db, app.redis, id, isActive);
+  void logActivity(app.db, {
+    adminId: req.user.id,
+    action: "url.toggle",
+    description: `${isActive ? "Mengaktifkan" : "Menonaktifkan"} shortlink${shortcode ? ` /${shortcode}` : ` #${id}`}`,
+    metadata: { id, shortcode, isActive },
+    ipAddress: getIp(req),
+  });
+  const status = isActive ? "diaktifkan" : "dinonaktifkan";
+  return reply
+    .status(200)
+    .header(
+      "HX-Trigger",
+      JSON.stringify({
+        showToast: {
+          message: `Shortlink berhasil ${status}.`,
+          type: "success",
+        },
+      }),
+    )
+    .send();
+}
+
 export async function deleteUrl(
   app: FastifyInstance,
   req: FastifyRequest<{ Params: { id: string } }>,
@@ -130,6 +274,13 @@ export async function deleteUrl(
 ) {
   const id = Number(req.params.id);
   const shortcode = await svc.deleteUrl(app.db, app.redis, id);
+  void logActivity(app.db, {
+    adminId: req.user.id,
+    action: "url.delete",
+    description: `Menghapus shortlink${shortcode ? ` /${shortcode}` : ` #${id}`}`,
+    metadata: { id, shortcode },
+    ipAddress: getIp(req),
+  });
   return reply
     .status(200)
     .header(

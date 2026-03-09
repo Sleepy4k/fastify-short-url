@@ -1,0 +1,155 @@
+<section id="logs-list" class="space-y-5">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="text-lg font-bold text-gray-100">Log Aktivitas</h2>
+      <p class="text-xs text-gray-400 mt-0.5">Riwayat semua tindakan di sistem</p>
+    </div>
+    <div class="flex items-center gap-2 text-xs text-gray-400">
+      <span>Total: <strong class="text-gray-200"><%= total %></strong> entri</span>
+    </div>
+  </div>
+
+  <form id="logs-search-form" hx-get="/admin/logs" hx-target="#logs-list" hx-select="#logs-list" hx-swap="outerHTML" hx-push-url="true" class="flex flex-col sm:flex-row gap-2">
+    <div class="relative flex-1">
+      <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+      <input type="search" name="search" value="<%= search %>" placeholder="Cari aksi, deskripsi, atau pengguna..." class="input-focus w-full rounded-xl bg-gray-800 border border-gray-700 pl-9 pr-4 py-2.5 text-sm focus:outline-none transition-all placeholder-gray-500" />
+    </div>
+    <input type="hidden" name="page" value="1" />
+    <div class="flex gap-2">
+      <div class="relative">
+        <select name="limit" class="appearance-none rounded-xl bg-gray-800 border border-gray-700 px-3 pr-8 py-2.5 text-xs text-gray-300 focus:outline-none cursor-pointer hover:bg-gray-700 transition-colors" onchange="this.form.querySelector('[name=page]') && (this.form.querySelector('[name=page]').value='1'); htmx.trigger(this.form, 'submit')">
+          <% for (const n of [10, 20, 30, 50, 100]) { %>
+          <option value="<%= n %>" <%= limit === n ? 'selected' : '' %>><%= n %> / hal</option>
+          <% } %>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+          <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+      <button type="submit" name="sort" value="<%= sort === 'asc' ? 'desc' : 'asc' %>" class="flex items-center gap-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2.5 text-xs font-medium text-gray-300 hover:text-white transition-colors flex-shrink-0" title="Ubah urutan">
+        <svg class="w-3.5 h-3.5<%= sort === 'asc' ? ' rotate-180' : '' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+        </svg>
+        <%= sort === 'asc' ? 'Terlama' : 'Terbaru' %>
+      </button>
+      <button type="submit" name="sort" value="<%= sort %>" class="rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2.5 text-xs font-medium text-gray-300 hover:text-white transition-colors">Cari</button>
+    </div>
+  </form>
+
+  <div class="rounded-xl border border-gray-800 overflow-hidden shadow-lg">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm min-w-[700px]">
+      <thead class="bg-gray-900 text-gray-300 uppercase text-xs font-semibold">
+        <tr>
+          <th class="px-4 py-3 text-left">Waktu</th>
+          <th class="px-4 py-3 text-left">Pengguna</th>
+          <th class="px-4 py-3 text-left">Aksi</th>
+          <th class="px-4 py-3 text-left">Deskripsi</th>
+          <th class="px-4 py-3 text-left hide-sm">IP</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-800 bg-gray-950">
+        <% for (const log of logs) { %>
+        <tr class="hover:bg-gray-900/50 transition-colors">
+          <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+            <%= new Date(log.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) %>
+          </td>
+          <td class="px-4 py-3 text-xs font-medium text-gray-300">
+            <%= log.username ?? '<span class="text-gray-600">—</span>' %>
+          </td>
+          <td class="px-4 py-3">
+            <%
+              const actionColor = {
+                'login': 'bg-green-900/40 text-green-300 border-green-800',
+                'logout': 'bg-gray-800 text-gray-400 border-gray-700',
+                'url.create': 'bg-blue-900/40 text-blue-300 border-blue-800',
+                'url.update': 'bg-purple-900/40 text-purple-300 border-purple-800',
+                'url.delete': 'bg-red-900/40 text-red-300 border-red-800',
+                'url.toggle': 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
+                'analytics.reset': 'bg-orange-900/40 text-orange-300 border-orange-800',
+                'user.create': 'bg-teal-900/40 text-teal-300 border-teal-800',
+                'user.delete': 'bg-red-900/40 text-red-300 border-red-800',
+                'settings.update': 'bg-indigo-900/40 text-indigo-300 border-indigo-800',
+                'profile.password_update': 'bg-gray-800 text-gray-300 border-gray-700',
+              }[log.action] || 'bg-gray-800 text-gray-400 border-gray-700';
+            %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border <%= actionColor %>">
+              <%= log.action %>
+            </span>
+          </td>
+          <td class="px-4 py-3 text-xs text-gray-300 max-w-[300px]">
+            <span class="line-clamp-2" title="<%= log.description %>"><%= log.description %></span>
+          </td>
+          <td class="px-4 py-3 text-xs text-gray-500 font-mono hide-sm">
+            <%= log.ipAddress ? log.ipAddress.substring(0, 20) : '—' %>
+          </td>
+        </tr>
+        <% } %>
+        <% if (!logs.length) { %>
+        <tr>
+          <td colspan="5" class="px-6 py-16 text-center text-gray-500 text-sm">
+            <% if (search) { %>
+            Tidak ada log yang cocok dengan pencarian "<%= search %>".
+            <% } else { %>
+            Belum ada log aktivitas.
+            <% } %>
+          </td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <% const totalPages = Math.ceil(total / limit); %>
+  <%
+  let _lstartPage = Math.max(1, page - 2);
+  let _lendPage = Math.min(totalPages, _lstartPage + 4);
+  if (_lendPage - _lstartPage < 4) _lstartPage = Math.max(1, _lendPage - 4);
+  const _lfp = `search=${encodeURIComponent(search)}&sort=${sort}&limit=${limit}`;
+  %>
+  <% if (totalPages > 1) { %>
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+    <span class="text-xs text-gray-500">Halaman <strong class="text-gray-300"><%= page %></strong> dari <strong class="text-gray-300"><%= totalPages %></strong></span>
+    <div class="flex items-center gap-1">
+      <% if (page > 1) { %>
+      <button hx-get="/admin/logs?page=<%= page - 1 %>&<%= _lfp %>" hx-target="#logs-list" hx-select="#logs-list" hx-swap="outerHTML" hx-push-url="true" class="flex items-center gap-1 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2 text-xs font-medium text-gray-300 hover:text-white transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg> Prev
+      </button>
+      <% } %>
+
+      <% if (_lstartPage > 1) { %>
+      <button hx-get="/admin/logs?page=1&<%= _lfp %>" hx-target="#logs-list" hx-select="#logs-list" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 w-9 py-2 text-xs font-medium text-gray-300 text-center">1</button>
+      <% if (_lstartPage > 2) { %><span class="text-gray-600 px-1 text-xs">…</span><% } %>
+      <% } %>
+
+      <% for (let p = _lstartPage; p <= _lendPage; p++) { %>
+      <button hx-get="/admin/logs?page=<%= p %>&<%= _lfp %>" hx-target="#logs-list" hx-select="#logs-list" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg border w-9 py-2 text-xs font-medium transition-colors text-center <%= p === page ? 'bg-red-700 border-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700 border-gray-700 text-gray-300 hover:text-white' %>">
+        <%= p %>
+      </button>
+      <% } %>
+
+      <% if (_lendPage < totalPages) { %>
+      <% if (_lendPage < totalPages - 1) { %><span class="text-gray-600 px-1 text-xs">…</span><% } %>
+      <button hx-get="/admin/logs?page=<%= totalPages %>&<%= _lfp %>" hx-target="#logs-list" hx-select="#logs-list" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 w-9 py-2 text-xs font-medium text-gray-300 text-center"><%= totalPages %></button>
+      <% } %>
+
+      <% if (page < totalPages) { %>
+      <button hx-get="/admin/logs?page=<%= page + 1 %>&<%= _lfp %>" hx-target="#logs-list" hx-select="#logs-list" hx-swap="outerHTML" hx-push-url="true" class="flex items-center gap-1 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-2 text-xs font-medium text-gray-300 hover:text-white transition-colors">
+        Next <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+</section>
