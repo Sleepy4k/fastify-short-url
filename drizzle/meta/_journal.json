@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1772964677987,
+      "tag": "0000_perfect_mad_thinker",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1772964687417,
+      "tag": "0001_faithful_bloodstrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1772979237074,
+      "tag": "0002_empty_slipstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1773000000000,
+      "tag": "0003_rename_ip_hash",
+      "breakpoints": true
+    }
+  ]
+}

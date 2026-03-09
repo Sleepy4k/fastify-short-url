@@ -1,0 +1,1 @@
+ALTER TABLE `clicks` CHANGE `ip_hash` `ip_address` varchar(45);

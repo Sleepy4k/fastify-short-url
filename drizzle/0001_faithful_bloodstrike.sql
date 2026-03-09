@@ -1,0 +1,1 @@
+ALTER TABLE `urls` MODIFY COLUMN `shortcode` varchar(100) NOT NULL;
